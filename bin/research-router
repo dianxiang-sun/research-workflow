@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Self-locating wrapper for the research-workflow skill's semantic_router.py tool.
+# On the Bash-tool PATH while the plugin is enabled (Claude Code plugin bin/).
+set -euo pipefail
+here="$(cd -- "$(dirname -- "$0")" && pwd -P)"
+exec python3 "$here/../skills/research/tools/semantic_router.py" "$@"

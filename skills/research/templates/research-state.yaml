@@ -1,0 +1,44 @@
+# Research Project State — typed, machine-readable live state.
+# Created by `/research init`; updated by every `/research` mode and at each Gate.
+# Owns LIVE STATE only. Config (name, domain, paper type, venue, autonomy) is
+# canonical in research-project.local.md; narrative memory is findings.md.
+# Supersedes the pre-M2 flat files research-{progress,risks,decisions}.md.
+
+schema_version: 1
+current_phase: 0          # 0..8 — advisory pointer, NOT an enforced FSM
+last_activity: ""         # ISO date, refreshed on every mode
+
+# Phases — advisory order; any mode callable at any time (cross-review C1).
+# state: pending|active|done    gate: pending|pass|conditional|block
+phases:
+  - {n: 0, name: explore,     state: active,  gate: pending, started: "", completed: ""}
+  - {n: 1, name: foundation,  state: pending, gate: pending, started: "", completed: ""}
+  - {n: 2, name: design,      state: pending, gate: pending, started: "", completed: ""}
+  - {n: 3, name: eval-design, state: pending, gate: pending, started: "", completed: ""}
+  - {n: 4, name: implement,   state: pending, gate: pending, started: "", completed: ""}
+  - {n: 5, name: experiment,  state: pending, gate: pending, started: "", completed: ""}
+  - {n: 6, name: write,       state: pending, gate: pending, started: "", completed: ""}
+  - {n: 7, name: review,      state: pending, gate: pending, started: "", completed: ""}
+  - {n: 8, name: rebuttal,    state: pending, gate: pending, started: "", completed: ""}
+
+# Artifacts — one typed artifact per phase; contracts in reference/capability-artifacts.md.
+# shape: {phase: N, type: <name>, status: draft|reviewed|accepted|superseded, path: "", provenance: ""}
+artifacts: []
+
+# Risks — the project risk registry.  severity: fatal|serious|moderate
+# shape: {id: R1, phase: N, severity: …, description: "", mitigation: "", paper_defense: "", status: open}
+# status: open|mitigated|accepted_risk|resolved — accepted_risk MUST carry paper_defense.
+risks: []
+
+# Decisions — the project decision log; feeds the paper's Threats to Validity.
+# shape: {date: "", decision: "", alternatives: "", rationale: "", impact: "", reversible: ""}
+decisions: []
+
+# Deadline milestones — submission-path checkpoints.
+milestones:
+  - {name: "Phase 3 Gate pass",    target: "", status: pending}
+  - {name: "Code freeze",          target: "", status: pending}
+  - {name: "Experiments complete", target: "", status: pending}
+  - {name: "First draft complete", target: "", status: pending}
+  - {name: "Internal review done", target: "", status: pending}
+  - {name: "Submission",           target: "", status: pending}

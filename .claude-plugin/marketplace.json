@@ -1,0 +1,25 @@
+{
+  "name": "research-workflow",
+  "owner": {
+    "name": "dianxiang-sun"
+  },
+  "metadata": {
+    "description": "End-to-end research workflow skill with adversarial validation gates.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "research-workflow",
+      "source": "./",
+      "description": "End-to-end research lifecycle: explore, foundation, design, eval, experiment, write, review, rebuttal — with adversarial pre-mortem gates at every phase transition.",
+      "category": "workflow",
+      "tags": [
+        "research",
+        "academic-writing",
+        "peer-review",
+        "literature-review",
+        "paper-writing"
+      ]
+    }
+  ]
+}
