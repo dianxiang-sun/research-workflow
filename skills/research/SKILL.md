@@ -1,6 +1,6 @@
 ---
 name: research
-description: "End-to-end research workflow skill covering the full lifecycle: direction exploration, literature survey, problem formulation, method design, evaluation design, implementation, experiments, paper writing, review, and post-submission. Use when starting any research phase, transitioning between phases, or needing adversarial pre-mortem review. Triggers on: /research, 'research workflow', 'adversarial gate', 'pre-mortem review', 'research risk', 'novelty check', any mention of research phases (explore, foundation, design, eval-design, implement, experiment, write, review, rebuttal)."
+description: "End-to-end research workflow skill covering the full lifecycle: direction exploration, literature survey, problem formulation, method design, evaluation design, implementation, experiments, paper writing, review, and post-submission. Use when starting any research phase, transitioning between phases, or needing adversarial pre-mortem review. Canonical command: /research-workflow:research <mode>. Triggers on natural-language phrases like 'research workflow', 'adversarial gate', 'pre-mortem review', 'research risk', 'novelty check', or any mention of research phases (explore, foundation, design, eval-design, implement, experiment, write, review, rebuttal)."
 user_invocable: true
 ---
 
@@ -13,10 +13,10 @@ user_invocable: true
 
 ## Quick Start (First-Time Users -- 2 Minutes)
 
-1. **Initialize**: `/research init` -- answer 5 questions (project name, domain, paper type, venue, deadline)
-2. **Start exploring**: `/research explore` -- systematic literature scan with gap analysis
+1. **Initialize**: `/research-workflow:research init` -- answer 5 questions (project name, domain, paper type, venue, deadline)
+2. **Start exploring**: `/research-workflow:research explore` -- systematic literature scan with gap analysis
 3. **Follow the prompts**: The skill guides you through each phase. After each phase, it offers an Adversarial Gate review.
-4. **Check progress anytime**: `/research status` -- see what's done, what's next, how much time left
+4. **Check progress anytime**: `/research-workflow:research status` -- see what's done, what's next, how much time left
 
 That's it. Everything else (learning mechanisms, agent patterns, evolution) works automatically in the background.
 
@@ -44,9 +44,13 @@ That's it. Everything else (learning mechanisms, agent patterns, evolution) work
 
 ## Usage
 
+The canonical command — what you actually type at the Claude Code prompt:
+
 ```
-/research <mode> [args]
+/research-workflow:research <mode> [args]
 ```
+
+This SKILL.md and the `phases/` / `reference/` files frequently shorten this to `/research <mode>` for prose readability. The shorthand is **for reading only** — when typing a command, suggesting one to the user, or printing one as runtime output, always use the canonical `/research-workflow:research <mode>` form. The bare `/research` namespace is unowned post-restructure and does not dispatch.
 
 ## Modes
 
@@ -116,7 +120,7 @@ When invoked standalone, ask the user for minimal context (paper type, venue, to
      - `findings.md` → `.claude/findings.md`
    - Do not use shell `cp "${CLAUDE_SKILL_DIR}/..."` — `${CLAUDE_SKILL_DIR}` is not reliably injected into the Bash-tool environment (empirically empty), and the resulting `cp /templates/...` expansion fails before mkdir can help.
 3. Fill in `research-project.local.md` answers; `research-state.yaml` starts at `current_phase: 0`
-4. Confirm: "Project initialized. Run `/research explore` to begin."
+4. Confirm: "Project initialized. Run `/research-workflow:research explore` to begin."
 
 ### `/research status` protocol
 Read `.claude/research-state.yaml` (if absent → legacy `research-{progress,risks,decisions}.md`, one-release fallback). Display:
@@ -133,7 +137,7 @@ Read `.claude/research-state.yaml` (if absent → legacy `research-{progress,ris
 ### Proactive suggestion protocol
 A UserPromptSubmit hook monitors conversation for research-related context.
 When triggered, Claude should briefly mention the relevant `/research` mode — e.g.:
-> "这个场景可以用 `/research gate` 做系统化审查，要试试吗？"
+> "这个场景可以用 `/research-workflow:research gate` 做系统化审查，要试试吗？"
 Do NOT force-invoke the skill. One sentence suggestion, then follow the user's lead.
 
 ## Paper Types

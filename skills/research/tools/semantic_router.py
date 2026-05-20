@@ -302,7 +302,7 @@ def cmd_route(args):
     if matches:
         for mode, sim, desc in matches[:3]:
             confidence = "HIGH" if sim > 0.3 else "MEDIUM" if sim > 0.15 else "LOW"
-            print(f"- /research {mode} [{confidence}, {sim:.3f}] — {desc}")
+            print(f"- /research-workflow:research {mode} [{confidence}, {sim:.3f}] — {desc}")
     else:
         # No match
         pass
