@@ -175,7 +175,7 @@ kind of mechanical check the skill already does.
 1. **`wc -l` trend** — count the skill's `*.md` + `templates/research-state.yaml`;
    report the delta + cumulative vs the 3143 baseline. Reported for visibility — a
    positive delta is NOT a reject reason (§15).
-2. **Structural sweep — 5 checks, each pass/fail:**
+2. **Structural sweep — 8 checks, each pass/fail:**
    1. every router-table mode in `SKILL.md` resolves to a phase / capability;
    2. every gated `phases/` file (all but `phase-writing-memory.md`, which has no gate)
       has an `## Emitted Artifact` section and a `## Gate Criteria` whose first line is
@@ -186,6 +186,15 @@ kind of mechanical check the skill already does.
       and this G8 spec naming them;
    4. the Phase-3 mandatory-question count is identical in every file that states it;
    5. the skill loads — frontmatter intact, `research-state.yaml` parses, `/research status` dispatches.
+   6. no `python3 reflect.py` / `python3 semantic_router.py` bare invocations — tools are
+      always called via the `research-reflect` / `research-router` wrapper names (H1 anchor);
+   7. no user-facing bare `/research <mode>` in `reference/dispatch-recipes.md`, `README.md`,
+      or as a Python `print` / `return` literal in `tools/*.py` — runtime output / user-typing
+      strings use canonical `/research-workflow:research <mode>` (M1 anchor; SKILL.md "canonical");
+   8. every `*.md` line that mentions `/verify-before-write` or `/verify-citations` (G1
+      companion commands) also carries a substring fallback marker — `installed`,
+      `otherwise`, `fallback`, `inline manual`, `re-open`, or `MUST` — so the verification
+      stays mandatory when the companion command is absent (H3 anchor).
 3. **Dispatcher-shape check** — `wc -l SKILL.md` ≤ ~400, and no fenced code block in
    `SKILL.md` exceeds ~15 lines.
 
@@ -195,6 +204,9 @@ Concrete read-only checks:
 - retired-file pointers — `grep -rl 'phase-progress-tracker\|research-progress\|research-risks\|research-decisions' --include='*.md' . | grep -vE 'phase-evolve|SKILL|capability-artifacts'` must be empty (the G8 spec, the `SKILL.md` one-release fallback, and `capability-artifacts.md` legitimately name these retired tokens; any other hit is a dangling pointer).
 - Phase-3 count — `grep -rhoE 'MANDATORY 1[0-9]' --include='*.md' .` must read "12" everywhere.
 - dispatcher-shape — `wc -l SKILL.md`, then scan `SKILL.md` for a code-fence pair more than ~15 lines apart.
+- tool naming (sweep #6) — `grep -rnE 'python3 (reflect|semantic_router)\.py' --include='*.md' --include='*.py' . | grep -v phase-evolve.md` must be empty (the G8 spec itself names these tokens; any other hit is drift back to bare invocation) (H1 anchor).
+- canonical command (sweep #7) — `grep -nE '/research [A-Za-z0-9_-]+' reference/dispatch-recipes.md README.md` and `grep -nE '"\s*/research [A-Za-z0-9_-]+|f"\s*/research [A-Za-z0-9_-]+' tools/*.py` must both be empty. Shorthand `/research <mode>` remains legal *inside* `SKILL.md` / `phases/` / `reference/` prose (see SKILL.md "canonical" anchor).
+- verify fallback (sweep #8) — `grep -rnE '/verify-(before-write|citations)' --include='*.md' . | grep -v phase-evolve.md | grep -vE 'installed|otherwise|fallback|inline manual|re-open|MUST'` must be empty (H3 anchor).
 
 ### Budget & Structure checklist (required artifact)
 
