@@ -88,15 +88,15 @@ After EVERY `/research` mode execution:
 
 **Always (10 seconds)**:
 1. Update `.claude/research-state.yaml` (phase state + the emitted artifact's lifecycle status)
-2. Quick score: `reflect.py log-outcome --skill <mode> --task "<desc>" --approach "<text>" --score <1-5>`
+2. Quick score: `research-reflect log-outcome --skill <mode> --task "<desc>" --approach "<text>" --score <1-5>`
 
 **Only on failure/partial (additional steps)**:
-3. `reflect.py log-reflection` with lesson learned
+3. `research-reflect log-reflection` with lesson learned
 4. Consider extracting predicate rule if pattern is generalizable
 5. Ask user: "这次有什么没覆盖到的？"
 
 **Only if hook didn't trigger** (user manually invoked skill):
-6. Ask what phrase they used → `semantic_router.py add-example`
+6. Ask what phrase they used → `research-router add-example`
 
 > Note: On success, do NOT ask "这次有什么没覆盖到的？" — respect the user's flow.
 > The full reflection cycle is reserved for when things go WRONG, which is when lessons are most valuable.

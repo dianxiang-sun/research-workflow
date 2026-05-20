@@ -60,7 +60,7 @@ User wants to RUN experiments:
   → USE: Pre-experiment checklist (ALL items must pass)
   → IF parallel agents: Enable subagent health monitoring (escalating checks + auto-restart)
   → DURING: Checkpoint every N/10, early stopping rules active
-  → AFTER: Log outcome via reflect.py, update cost tracker
+  → AFTER: Log outcome via research-reflect, update cost tracker
 
 User wants to BUILD research foundation (deep reading, RQ, motivation):
   → /research foundation
@@ -144,7 +144,7 @@ User mentions DEADLINE pressure or is BEHIND schedule:
 User finishes ANY /research mode:
   → POST-INVOCATION PROTOCOL (mandatory):
     1. Update progress tracker (check off items)
-    2. Log outcome (reflect.py log-outcome)
+    2. Log outcome (research-reflect log-outcome)
     3. If failure: Log reflection + extract rule
     4. Ask: "这次有什么没覆盖到的？"
     5. If hook missed: Learn new trigger phrase

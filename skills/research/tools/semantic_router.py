@@ -7,10 +7,10 @@ Uses TF-IDF vectors (no external API needed) for lightweight semantic matching.
 Can be upgraded to OpenAI/sentence-transformers embeddings for higher quality.
 
 Usage:
-  python3 semantic_router.py route "<user message>"
-  python3 semantic_router.py add-example --mode <mode> --phrase "<trigger phrase>"
-  python3 semantic_router.py list-routes
-  python3 semantic_router.py rebuild-index
+  research-router route "<user message>"
+  research-router add-example --mode <mode> --phrase "<trigger phrase>"
+  research-router list-routes
+  research-router rebuild-index
 """
 
 import json
@@ -353,7 +353,7 @@ def cmd_rebuild_index(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Semantic router for /research skill")
+    parser = argparse.ArgumentParser(prog="research-router", description="Semantic router for /research skill")
     sub = parser.add_subparsers(dest="command")
 
     p = sub.add_parser("route")

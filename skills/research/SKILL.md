@@ -119,8 +119,8 @@ Read `.claude/research-state.yaml` (if absent → legacy `research-{progress,ris
 - Latest synthesis direction — the most recent `Gate synthesis:` line in `findings.md` (DEEPEN / BROADEN / PIVOT / CONCLUDE; a direction, not a gate verdict)
 - Pending items = artifacts not yet `accepted` for the current phase + `findings.md` Open Questions
 - Open risks: count by severity (from `risks:`)
-- Recent outcomes: last 3 (from reflect.py query-outcomes)
-- Active rules: hard count + soft count (from reflect.py query-rules)
+- Recent outcomes: last 3 (from research-reflect query-outcomes)
+- Active rules: hard count + soft count (from research-reflect query-rules)
 - Last activity date (`last_activity`)
 
 ### Proactive suggestion protocol

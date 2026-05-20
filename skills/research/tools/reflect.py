@@ -4,17 +4,17 @@ Reflexion + MPR tools for /research skill.
 Handles structured reflections, predicate rules, and outcome tracking.
 
 Usage:
-  python3 reflect.py log-reflection --skill <mode> --task <desc> --result <success|partial|failure> --what-happened <text> --lesson <text>
-  python3 reflect.py log-rule --phase <N> --rule <IF...THEN text> --confidence <0.0-1.0> --source <reflection_id>
-  python3 reflect.py log-outcome --skill <mode> --task <desc> --approach <text> --score <1-5> --failure-reasons <text>
-  python3 reflect.py query-reflections --skill <mode> [--limit N]
-  python3 reflect.py query-rules --phase <N> [--min-confidence 0.5]
-  python3 reflect.py query-outcomes --skill <mode> [--limit N]
-  python3 reflect.py boost-rule --rule-id <id>
-  python3 reflect.py weaken-rule --rule-id <id>
-  python3 reflect.py retire-rule --rule-id <id>
-  python3 reflect.py export-summary
-  python3 reflect.py stats
+  research-reflect log-reflection --skill <mode> --task <desc> --result <success|partial|failure> --what-happened <text> --lesson <text>
+  research-reflect log-rule --phase <N> --rule <IF...THEN text> --confidence <0.0-1.0> --source <reflection_id>
+  research-reflect log-outcome --skill <mode> --task <desc> --approach <text> --score <1-5> --failure-reasons <text>
+  research-reflect query-reflections --skill <mode> [--limit N]
+  research-reflect query-rules --phase <N> [--min-confidence 0.5]
+  research-reflect query-outcomes --skill <mode> [--limit N]
+  research-reflect boost-rule --rule-id <id>
+  research-reflect weaken-rule --rule-id <id>
+  research-reflect retire-rule --rule-id <id>
+  research-reflect export-summary
+  research-reflect stats
 """
 
 import json
@@ -88,7 +88,7 @@ def cmd_log_reflection(args):
     # Auto-extract rule if failure
     if args.result == "failure" and args.lesson:
         print("\n[Auto] Consider extracting a predicate rule from this failure.")
-        print(f'  python3 reflect.py log-rule --phase {args.skill} --rule "IF ... THEN ..." --confidence 0.5 --source {record["id"]}')
+        print(f'  research-reflect log-rule --phase {args.skill} --rule "IF ... THEN ..." --confidence 0.5 --source {record["id"]}')
 
 
 def cmd_log_rule(args):
@@ -313,7 +313,7 @@ def cmd_stats(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Research skill reflection & learning tools")
+    parser = argparse.ArgumentParser(prog="research-reflect", description="Research skill reflection & learning tools")
     sub = parser.add_subparsers(dest="command")
 
     p = sub.add_parser("log-reflection")
