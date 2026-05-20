@@ -1,7 +1,7 @@
 # Research Project Configuration Template
 #
-# This is a TEMPLATE. `/research-workflow:research init` copies it to .claude/research-project.local.md.
-# Fill in project-specific details. Read by /research at every invocation.
+# This is a TEMPLATE. Created by `/research-workflow:research init` from this template using Read+Write into .claude/research-project.local.md (M9 — see SKILL.md `/research init` protocol).
+# Fill in project-specific details. Read by `/research-workflow:research` at every invocation.
 
 ---
 project_name: ""
@@ -33,7 +33,7 @@ ablation_components:              # components to ablate (from Phase 2 traceabil
   - ""                            # e.g., "SecuritySpec", "KB", "Auditor"
 
 # Domain oracle adapter (R8) — pins this project's evaluation contract so Phase 3 is
-# reusable across paper types without generic per-type prose. Read by /research eval-design.
+# reusable across paper types without generic per-type prose. Read by `/research-workflow:research eval-design`.
 domain_adapter:
   claim_type: ""                  # the kind of claim — e.g. "detection accuracy", "speedup", "correctness guarantee", "empirical finding", "taxonomy coverage"
   oracle: ""                      # the CATEGORY of source-of-truth admissible for that claim — human-label / benchmark / machine-checked-proof / inter-rater-coding (the concrete tool goes in evaluation_instruments)

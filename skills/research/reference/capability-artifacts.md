@@ -52,7 +52,10 @@ required fields rather than restating them.
 
 Type-specific phases: survey-methodology → Survey Methodology Record;
 theory-proofs → Theory & Proofs Record; supplementary → Supplementary & Artifact
-Package. `/research evolve` emits an Evolution Log entry to `evolution.md`.
+Package. `/research-workflow:research evolve` emits an Evolution Log entry to
+`${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/evolution-log.md` (state-dir
+runtime log; the bundle file `evolution.md` is legacy pre-H2 scaffolding —
+see backlog **M4** for removal tracking).
 
 ## Evidence-gap artifact — `GAP_REPORT.md`
 

@@ -33,7 +33,7 @@ If all three files are empty or missing, there is nothing to evolve — exit. Ot
 
 ### Step 2 — Pattern Analysis
 
-**2a. Rule promotion (soft → hard)** — rules with `times_tested ≥ 5` and `confidence ≥ 0.7`, tested across ≥ 2 distinct phases (not one repeated context). If only frequency holds, flag as "strong soft rule, monitor one more cycle".
+**2a. Rule promotion (soft → hard)** — rules with `times_tested ≥ 5` and `confidence ≥ 0.7`. **Fresh-rule guard**: a rule with `times_tested < 3` is treated as "strong soft", **never promotable to hard**, even if `confidence ≥ 0.7` — this defends against one-shot hardening from `boost-rule` (which currently lifts a 0.5 rule to 0.99 / hard in a single call; see backlog **L8**). If only one of (frequency, confidence) holds, flag as "strong soft rule, monitor one more cycle".
 
 **2b. Rule retirement** — rules with `times_tested ≥ 5` and `confidence ≤ 0.3`. Distinguish "wrong rule" (consistently bad) from "rarely triggered" (few opportunities). Wrong → propose retirement with a replacement candidate if a pattern exists. Rarely triggered → propose rewording the trigger condition, not retirement.
 
@@ -65,15 +65,35 @@ bundle_changes:
 
 ### Step 4 — User Review
 
-Present the proposal record(s) as a numbered list — `runtime_actions` first, `bundle_changes` second. Per entry show: change, evidence refs, risk if rejected, apply path. The user approves, rejects, or modifies each individually. Rejected entries log to `evolution.md` § Skill Update Proposals with reason and may resurface in a later cycle.
+Present the proposal record(s) as a numbered list — `runtime_actions` first, `bundle_changes` second. Per entry show: change, evidence refs, risk if rejected, apply path. The user approves, rejects, or modifies each individually. Rejected entries log to the runtime evolution log (`${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/evolution-log.md` § Skill Update Proposals) with reason and may resurface in a later cycle.
 
 ### Step 5 — Application
 
+**Before any apply — first-time setup of the runtime evolution log.** If `${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/evolution-log.md` does not yet exist, create it (mkdir -p the directory; Write the file) with these six section headers — they are the schema that Steps 5a/5b append into:
+
+```
+# Research Skill Evolution Log (runtime)
+
+## Learned Anti-Patterns
+
+## Custom Gate Questions
+
+## Keyword Supplements
+
+## Project Lessons
+
+## Skill Update Proposals
+
+## Runtime Apply Manifest
+```
+
+The bundle file `skills/research/evolution.md` is **legacy pre-H2 scaffolding** — not read or written by `/research-workflow:research` after H2. Removal of the bundle file is tracked by backlog **M4** (separate cleanup); it remains in the bundle for now as a structural reference.
+
 **5a. Runtime apply (per approved `runtime_actions` entry).** Before executing the CLI action:
 
-1. Append a one-line **undo manifest** record to `evolution.md` § Runtime Apply Manifest containing the pre-edit state — for `boost-rule` / `retire-rule`, the rule's current `rules.jsonl` line; for `add-route-example`, the route's pre-edit example list. This is the rollback paper trail — there is no git-level revert for runtime state.
+1. Append a one-line **undo manifest** record to the runtime evolution log (`${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/evolution-log.md` § Runtime Apply Manifest) containing the pre-edit state — for `boost-rule` / `retire-rule`, the rule's current `rules.jsonl` line; for `add-route-example`, the route's pre-edit example list. This is the rollback paper trail — there is no git-level revert for runtime state.
 2. Execute the CLI: `research-reflect boost-rule --rule-id <id>` / `research-reflect retire-rule --rule-id <id>` / `research-router add-example --mode <m> --phrase "<p>"`.
-3. Append the apply-success line to the appropriate `evolution.md` section per change semantics (Learned Anti-Patterns / Project Lessons / Keyword Supplements).
+3. Append the apply-success line to the appropriate `evolution-log.md` section (under `${RESEARCH_SKILL_STATE_DIR}`) per change semantics (Learned Anti-Patterns / Project Lessons / Keyword Supplements).
 
 **5b. Bundle proposal (per approved `bundle_changes` entry).**
 
@@ -105,7 +125,7 @@ status: proposed
 4. Bump plugin version; commit; re-release.
 ```
 
-3. Append a one-liner to `evolution.md` § Skill Update Proposals: `- [DATE] [TARGET_FILES] [CHANGE_TYPE]: <description> (proposal: <path>, status: proposed)`.
+3. Append a one-liner to the runtime evolution log (`${RESEARCH_SKILL_STATE_DIR}/evolution-log.md` § Skill Update Proposals): `- [DATE] [TARGET_FILES] [CHANGE_TYPE]: <description> (proposal: <path>, status: proposed)`.
 
 **There is no `git commit` step inside `/research evolve`.** Public installs run from a read-only plugin cache; the maintainer's clone receives bundle changes via the proposal documents.
 

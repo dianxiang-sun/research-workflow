@@ -1,7 +1,7 @@
 # Findings — <project_name>
 
-> Outer-loop narrative memory. Created by `/research init`; updated at every Gate
-> and `/research status`; read at the start of every `/research` invocation.
+> Outer-loop narrative memory. Created by `/research-workflow:research init`; updated at every Gate
+> and `/research-workflow:research status`; read at the start of every `/research-workflow:research` invocation.
 > Quality bar: after substantial work, the paper's abstract is writable from this file alone.
 
 ## Current Understanding

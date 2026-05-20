@@ -160,6 +160,46 @@ DEFAULT_ROUTES = {
             "supervisor update", "和老师开会", "进度汇报", "discuss with advisor",
             "导师反馈", "advisor feedback", "组会"
         ]
+    },
+    "init": {
+        "description": "项目初始化: 5 个问题问完,3 个 template 物化到 .claude/",
+        "examples": [
+            "新项目", "new project", "初始化", "init",
+            "set up project", "start a new project", "开始研究项目",
+            "首次配置", "first time setup", "建立项目"
+        ]
+    },
+    "status": {
+        "description": "进度查看: 当前 phase / artifact / 风险 / milestone",
+        "examples": [
+            "现在到哪了", "what's the status", "进度", "status",
+            "查看进度", "where am I", "current state",
+            "phase 几了", "今天该干嘛", "show status"
+        ]
+    },
+    "present": {
+        "description": "Phase 9 演讲准备: 论文已 accepted,做 talk / poster / demo",
+        "examples": [
+            "talk preparation", "演讲准备", "做 PPT", "presentation",
+            "poster", "海报", "demo", "演示",
+            "如何讲这篇论文", "talk practice", "汇报论文"
+        ]
+    },
+    "rollback": {
+        "description": "Phase 回退: 当前 phase 发现前面 phase 错了,结构化回到 N",
+        "examples": [
+            "rollback", "回退", "退回到 phase", "rollback to phase",
+            "Phase 5 发现 Phase 2 有问题", "需要重新设计",
+            "abort current phase", "回炉重造", "phase regression"
+        ]
+    },
+    "mine-patterns": {
+        "description": "从已 accepted 的论文提取写作 patterns",
+        "examples": [
+            "mine patterns", "提取 patterns", "学习写作模式",
+            "from accepted papers", "writing style extraction",
+            "找规律", "总结 pattern", "extract patterns"
+        ]
     }
 }
 

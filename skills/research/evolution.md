@@ -1,5 +1,9 @@
-# Research Skill Evolution Log
+# Research Skill Evolution Log — LEGACY (pre-H2 scaffolding)
 
+> **LEGACY — pre-H2 design.** Post-H2 (2026-05-20 `0568767`), `/research-workflow:research evolve` writes its runtime evolution log to `${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/evolution-log.md`, **not** to this bundle file. This file is retained as a structural reference for the runtime log's section schema. **Do not modify; not read or written by the skill at runtime.** Full removal of this bundle file is tracked by backlog **M4** (separate cleanup).
+>
+> Original (pre-H2) prose below, kept for historical context only:
+>
 > This file is READ by the /research skill on every invocation.
 > It contains lessons learned, custom checks, and keyword supplements
 > that make the skill smarter over time.
