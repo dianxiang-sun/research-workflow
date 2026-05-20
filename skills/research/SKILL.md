@@ -135,10 +135,11 @@ Read `.claude/research-state.yaml` (if absent → legacy `research-{progress,ris
 - Last activity date (`last_activity`)
 
 ### Proactive suggestion protocol
-A UserPromptSubmit hook monitors conversation for research-related context.
-When triggered, Claude should briefly mention the relevant `/research` mode — e.g.:
+
+**Opt-in scaffolding — not active by default.** The skill ships a `research-router` CLI; users may optionally wire it into a `UserPromptSubmit` hook (see `README.md` § Optional: semantic-router hook) that monitors conversation for research-related context. When that hook is installed and fires, Claude should briefly mention the relevant `/research-workflow:research <mode>` — e.g.:
 > "这个场景可以用 `/research-workflow:research gate` 做系统化审查，要试试吗？"
-Do NOT force-invoke the skill. One sentence suggestion, then follow the user's lead.
+
+Do NOT force-invoke the skill. One sentence suggestion, then follow the user's lead. **Without the hook, this protocol does not fire** — Claude only invokes a mode when the user does. The skill remains fully correct in either mode (§14.3: prose must never make a no-hook user depend on a hook they have not installed).
 
 ## Paper Types
 
