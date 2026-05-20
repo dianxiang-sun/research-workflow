@@ -99,7 +99,9 @@ Every number in the paper must be traceable. Build this table:
 |-------|---------------|-----------------|-------------|-------------|--------|
 
 Rules:
-- Use `/verify-before-write` for statistics from cited papers
+- For every statistic from a cited paper, verify before writing — **G1 hard requirement**:
+  - **Preferred:** `/verify-before-write` if installed.
+  - **Inline fallback (MUST be used when the command is unavailable):** open the source paper, locate the value in context, copy the exact value + unit + sample size into the manuscript, confirm the surrounding sentence's truth claim. Skipping is a G1 violation, not a tolerated degradation.
 - Never add `\cite{}` without PDF verification
 - After writing each section, grep all numbers → verify each against source
 

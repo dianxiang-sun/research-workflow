@@ -19,7 +19,7 @@
   | Paper | Year | Venue | Method Type | Key Contribution | Limitations | Potential Gap |
   |-------|------|-------|-------------|-----------------|-------------|---------------|
 
-- Use `/map-reduce-papers` for batch processing (3+ papers), `/speed-read` for individuals
+- If installed: use `/map-reduce-papers` for batch processing (3+ papers), `/speed-read` for individuals. Otherwise: process each paper by hand into the structured table above — neither command is bundled with this plugin (see `reference/skill-integration.md` § Companion commands)
 - NEVER claim search is exhaustive — always document query scope and databases searched
 - Check both published (DBLP, Semantic Scholar) and preprints (arXiv)
 - Note the search date — results become stale within months

@@ -64,8 +64,8 @@ User wants to RUN experiments:
 
 User wants to BUILD research foundation (deep reading, RQ, motivation):
   → /research foundation
-  → USE: /speed-read or /map-reduce-papers for paper reading
-  → USE: /verify-before-write for every statistic extracted
+  → USE if installed: /speed-read or /map-reduce-papers for paper reading; else read papers by hand into the structured notes table
+  → USE: /verify-before-write for every statistic extracted (G1 hard) — fallback is the inline manual verification in phase-1-foundation.md:21, not "skip"
   → AFTER: Draft RQs with confirmation/refutation criteria
   → AFTER: Offer /research gate 1
 

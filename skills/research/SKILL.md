@@ -374,7 +374,7 @@ Progressive-disclosure detail lives in `reference/`; `SKILL.md` stays a thin dis
 
 | Anti-Pattern | Mechanism |
 |-------------|-----------|
-| Fabricated citations | G1 + `/verify-before-write` |
+| Fabricated citations | G1 + `/verify-before-write` (if installed) — manual citation re-read fallback otherwise (`phase-1-foundation.md:21`); the *verification* is mandatory, only the command is optional |
 | Late fatal flaws | Gate at every transition |
 | Unauthorized edits | G2 Scope Lock |
 | Shallow reviews | G4 + multi-persona |

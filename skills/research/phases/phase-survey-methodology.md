@@ -92,7 +92,7 @@ Define extraction form BEFORE reading:
 **Rules**:
 - One row per paper, columns aligned with RQs
 - Extract FACTS, not interpretations (interpretation comes in synthesis)
-- Use `/verify-before-write` for any specific statistics
+- For any specific statistic, verify before writing — **G1 hard requirement**: `/verify-before-write` if installed; otherwise re-open the source paper, locate the value in context, and copy exact value + unit + sample size by hand. Skipping is a G1 violation.
 - Flag ambiguous or conflicting data explicitly
 
 ### 6. Synthesis Methodology

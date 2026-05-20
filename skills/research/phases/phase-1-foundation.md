@@ -7,7 +7,7 @@
 ## Protocol
 
 ### 1. Deep Reading (core papers, ≤12)
-- Use `/speed-read` per paper; `/map-reduce-papers` for 3+
+- If installed: use `/speed-read` per paper, `/map-reduce-papers` for 3+. Otherwise: read each paper end-to-end and fill the notes table below by hand — the table is what matters, the commands are only a shortcut to populate it.
 - Structured notes per paper:
 
   | Aspect | Content |
@@ -18,7 +18,9 @@
   | Inspiration | What we can learn / build upon / differentiate from |
   | Relevance to direction | What this paper settles / opens up *for our research direction* — read through the lens of the working direction, not as a generic abstract |
 
-- Every extracted statistic MUST use `/verify-before-write`
+- Every extracted statistic MUST be verified before being written into the notes — this is a **G1 hard requirement, not optional**:
+  - **Preferred path:** `/verify-before-write` if the command is installed.
+  - **Inline fallback (always available, MUST be used when the command is not):** re-open the source paper, locate the statistic in context, copy the exact value + unit + sample size into the note, and confirm the surrounding sentence's truth claim. Skipping this fallback because "the command isn't installed" is a G1 (zero-fabrication) violation, not a tolerated degradation.
 - Distinguish "paper claims X" from "paper proves X" — many claims are unverified
 - **Query-conditioned reading (RCS, T2)**: write every note above *relative to the working research direction* (the Phase-0 Research Direction Card — Phase 1's input) — a generic, abstract-style summary that ignores our direction is the anti-pattern. After noting the set, **re-rank** the reading list by relevance to set reading *depth*. Re-ranking sets depth, never inclusion — a must-cite, closest-prior-work, or contradictory / threatening paper is read regardless of its relevance rank.
 
