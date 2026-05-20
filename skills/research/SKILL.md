@@ -104,10 +104,17 @@ When invoked standalone, ask the user for minimal context (paper type, venue, to
 
 ### `/research init` protocol
 1. Ask user: project name, domain, paper type, target venue, deadline
-2. Copy 3 templates into `.claude/`:
-   - `cp "${CLAUDE_SKILL_DIR}/templates/research-project.template.md" .claude/research-project.local.md`
-   - `cp "${CLAUDE_SKILL_DIR}/templates/research-state.yaml" .claude/research-state.yaml`
-   - `cp "${CLAUDE_SKILL_DIR}/templates/findings.md" .claude/findings.md`
+2. Ensure `.claude/` exists, then materialize 3 templates into it:
+   - `mkdir -p .claude` — Bash-tool init MUST NOT assume the directory already exists; brand-new projects do not have a `.claude/`.
+   - For each template, use the Read tool to read it from the skill bundle and the Write tool to materialize it. Pick the first bundle path that resolves:
+     1. `${CLAUDE_PLUGIN_ROOT}/skills/research/templates/<file>` — plugin-injected env var when available
+     2. `~/.claude/plugins/marketplaces/research-workflow/skills/research/templates/<file>` — marketplace symlink layout
+     3. `~/.claude/plugins/cache/research-workflow/research-workflow/<version>/skills/research/templates/<file>` — cache fallback (pick highest version if multiple)
+   - The 3 mappings:
+     - `research-project.template.md` → `.claude/research-project.local.md`
+     - `research-state.yaml` → `.claude/research-state.yaml`
+     - `findings.md` → `.claude/findings.md`
+   - Do not use shell `cp "${CLAUDE_SKILL_DIR}/..."` — `${CLAUDE_SKILL_DIR}` is not reliably injected into the Bash-tool environment (empirically empty), and the resulting `cp /templates/...` expansion fails before mkdir can help.
 3. Fill in `research-project.local.md` answers; `research-state.yaml` starts at `current_phase: 0`
 4. Confirm: "Project initialized. Run `/research explore` to begin."
 
