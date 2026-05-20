@@ -113,12 +113,6 @@ Key behaviors:
 - **Stale detection**: a phase `active` with a long-unmoved `started` date → nudge
 - **Gate reminder**: a phase's artifact still `draft` while the phase looks done → "别忘了跑 /research gate"
 
-### `/research evolve` mode:
+### `/research evolve` mode
 
-Monthly self-improvement:
-1. `reflect.py stats` → analyze usage patterns
-2. Identify soft rules tested 5+ times → promote to hard
-3. Identify modes never used → improve triggers or deprecate
-4. Identify recurring reflection patterns → propose new phase protocol entries
-5. Present proposals to user → apply approved changes to phase files
-6. Run `semantic_router.py rebuild-index` after changes
+→ Full protocol in **`phases/phase-evolve.md`** — the 6-step proposal pipeline (Data → Pattern Analysis → Proposal Generation → User Review → Application → Verification), the two-path apply model (runtime CLI vs bundle proposal document under `${RESEARCH_SKILL_STATE_DIR}/proposals/`), the bounded Health Score, and the G8 mechanical hook.

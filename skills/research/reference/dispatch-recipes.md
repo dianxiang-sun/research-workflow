@@ -107,9 +107,8 @@ User wants to ROLL BACK to earlier phase:
 
 User wants to EVOLVE the skill:
   → /research evolve
-  → READ: phase-evolve.md for full protocol
-  → USE: reflect.py export-summary + stats for data collection
-  → DECIDE: Promote rules, retire rules, add gate questions, update triggers
+  → READ: phase-evolve.md for full protocol (data sources, two apply paths, Health Score)
+  → DECIDE: per-item approve runtime applies (rule promote/retire, route example) vs maintainer-bound bundle proposals (new gate, phase reword, router DEFAULT edit)
 
 User wants to EXTRACT writing patterns:
   → /research mine-patterns

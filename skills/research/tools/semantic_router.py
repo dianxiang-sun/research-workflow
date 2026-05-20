@@ -17,6 +17,7 @@ import json
 import os
 import sys
 import argparse
+import copy
 import re
 import math
 from pathlib import Path
@@ -226,8 +227,16 @@ def cosine_sim(v1: dict, v2: dict) -> float:
 
 
 def load_routes() -> dict:
-    """Load routes: merge defaults with user-added examples."""
-    routes = dict(DEFAULT_ROUTES)
+    """Load routes: merge defaults with user-added examples.
+
+    Uses deepcopy so per-mode `examples` lists are fresh — `dict(DEFAULT_ROUTES)`
+    is shallow, leaving `routes[mode]["examples"]` as the same list object as
+    `DEFAULT_ROUTES[mode]["examples"]`. `cmd_add_example` then appends in place,
+    silently mutating DEFAULT_ROUTES; `save_custom_routes` then computes its
+    new-examples delta against the now-already-extended default and finds none,
+    writing an empty `{}` to ROUTES_FILE — i.e. `add-example` reports success
+    but persists nothing across processes."""
+    routes = copy.deepcopy(DEFAULT_ROUTES)
     if ROUTES_FILE.exists():
         with open(ROUTES_FILE) as f:
             custom = json.load(f)

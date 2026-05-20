@@ -1,104 +1,148 @@
 # Skill Evolution Protocol (`/research evolve`)
 
-> Analyze accumulated reflection data to improve routing, rules, and gate questions over time.
+> Analyze accumulated reflection / rule / outcome data to refine routing, rules, and gates over time — propose, never auto-apply.
 
 ## Applies to: ALL paper types (meta-protocol)
 
+## Scope (READ FIRST)
+
+`/research evolve` is a **proposal pipeline with a per-item human-approval gate**, not autonomous self-modification. It produces TWO apply paths, and the user controls both:
+
+| Apply path | What it changes | How it's applied |
+|---|---|---|
+| **runtime** | `rules.jsonl` / `outcomes.jsonl` / `routes.json` under `${RESEARCH_SKILL_STATE_DIR}` (default `~/.claude/research/memory/`) | `research-reflect boost-rule\|retire-rule` / `research-router add-example`, after per-item user approval |
+| **bundle proposal** | `phases/*.md` / `reference/*.md` / `tools/semantic_router.py` `DEFAULT_ROUTES` — skill files inside the plugin cache, which is read-only on public installs | Emits a markdown proposal document under `${RESEARCH_SKILL_STATE_DIR}/proposals/`; the maintainer applies it inside a clone of `~/code/research-workflow` and re-releases |
+
+Public users get the runtime half end-to-end. Bundle changes become a paper trail the maintainer can act on; the skill never writes into its own bundle.
+
+A single proposal record MAY mix both lists (e.g. promote a rule AND propose a gate question that references it).
+
 ## Protocol
 
-### 1. Data Collection
-- Run `reflect.py stats` to get aggregate metrics: total invocations, outcome distribution, rule hit rates, mode usage frequency
-- Run `reflect.py export-summary` to get a structured dump of all reflections with outcomes
-- If either command fails or returns empty data, stop — there is nothing to evolve yet
-- Record the current date and invocation count as the evolution baseline
+### Step 1 — Data
 
-### 2. Pattern Analysis
+Read the raw JSONL files under `${RESEARCH_SKILL_STATE_DIR}` (default `~/.claude/research/memory/`):
 
-#### 2a. Rule Promotion (soft -> hard)
-- Query all **soft rules** tested >=5 times with confidence >=0.7
-- For each candidate:
-  - Verify the confidence is not inflated by a single repeated scenario
-  - Check that the rule has been tested across >=2 distinct phases (not just one context)
-  - If both hold: propose promotion to hard rule
-  - If only frequency holds: flag as "strong soft rule, monitor for one more cycle"
+- `rules.jsonl` — id, phase, rule text, confidence, times_tested, times_validated, source, status
+- `outcomes.jsonl` — skill_mode, task, approach, score, failure_reasons
+- `reflections.jsonl` — id, skill_mode, result, what_happened, lesson
 
-#### 2b. Rule Retirement
-- Query all rules tested >=5 times with confidence <=0.3
-- For each candidate:
-  - Distinguish "wrong rule" (consistently bad advice) from "rarely triggered" (few test opportunities)
-  - Wrong rules: propose retirement with replacement suggestion if pattern exists
-  - Rarely triggered: propose rewording the trigger condition, not retirement
+Do NOT rely on `research-reflect query-*` for analysis — its human-formatted output strips id / phase / counters that Step 2 needs. Use `research-reflect stats` only for the cold-start sanity exit.
 
-#### 2c. Dead Mode Analysis
-- Identify modes with 0 uses since last evolution (or ever)
-- For each unused mode:
-  - Check if its trigger keywords overlap with a more popular mode (cannibalized?)
-  - Check if the use case genuinely arises in this project type
-  - Propose one of: reword triggers, merge into another mode, archive with rationale
+If all three files are empty or missing, there is nothing to evolve — exit. Otherwise record date + per-file record counts as the evolution baseline; compute the Health Score (below).
 
-#### 2d. New Gate Question Discovery
-- Scan reflections for recurring failure patterns (same root cause >=3 times)
-- For each pattern:
-  - Formulate a gate question that would have caught the issue earlier
-  - Identify which phase's gate criteria should include it
-  - Draft the question in the same style as existing gates (yes/no, specific, testable)
+### Step 2 — Pattern Analysis
 
-#### 2e. Route Example Expansion
-- Scan reflections for keywords the user typed when the semantic router missed
-- For each missed route:
-  - Add the user's phrasing as a new example in the route definition
-  - Verify the new example does not create ambiguity with other routes
+**2a. Rule promotion (soft → hard)** — rules with `times_tested ≥ 5` and `confidence ≥ 0.7`, tested across ≥ 2 distinct phases (not one repeated context). If only frequency holds, flag as "strong soft rule, monitor one more cycle".
 
-### 3. Proposal Generation
-For each identified improvement, produce a structured proposal:
+**2b. Rule retirement** — rules with `times_tested ≥ 5` and `confidence ≤ 0.3`. Distinguish "wrong rule" (consistently bad) from "rarely triggered" (few opportunities). Wrong → propose retirement with a replacement candidate if a pattern exists. Rarely triggered → propose rewording the trigger condition, not retirement.
 
-| # | Type | Target File | Change | Justification |
-|---|------|-------------|--------|---------------|
-| 1 | promote | `phases/phase-X.md` | Move rule R from soft to hard | Confidence 0.85 over 12 trials (sessions S3-S14) |
-| 2 | retire | `phases/phase-Y.md` | Remove rule R, replace with R' | Confidence 0.15 over 8 trials, consistently misleading |
-| 3 | new-gate | `phases/phase-Z.md` | Add gate: "Have you verified X?" | Same failure in reflections R4, R7, R11 |
-| 4 | reword | `tools/semantic_router.py` | Add example "XYZ" to mode M | Missed in sessions S5, S8 |
+**2c. New gate question discovery** — scan `reflections.jsonl` for ≥ 3 occurrences of the same root-cause failure. Formulate a yes/no, specific, testable gate question that would have caught it earlier; pick the phase whose existing gate criteria should host it.
 
-- Every proposal must cite specific reflection IDs or session numbers as evidence
-- Never propose changes based on fewer than 3 data points
+**2d. Route example expansion** — scan reflections for user phrasings where `research-router route "<phrase>"` returned no match or the wrong mode. For each missed phrase, propose adding it as an example to the correct mode. Verify the new example does not collide with another mode's tokens (`research-router route` returns the candidate phrase itself as the top hit only for the intended mode).
 
-### 4. User Review
-- Present proposals as a numbered list grouped by type (promote / retire / new-gate / reword / archive)
-- For each proposal, show: the change, the evidence, and the risk if rejected
-- User approves, rejects, or modifies each individually
-- Rejected proposals are logged with reason (they may resurface in future evolutions)
+(Dead-mode analysis — "modes with 0 uses since last evolution" — is intentionally **NOT** in MVP: it requires an invocation counter `reflect.py` does not emit. Tracked as a backlog item for a future increment.)
 
-### 5. Application
-- Apply approved changes to the target files
-- For each applied change, append an entry to `evolution.md`:
-  ```
-  ## Evolution [DATE]
-  - [TYPE] [TARGET]: [DESCRIPTION] (evidence: [REFS]) — approved by user
-  ```
-- Commit changes with prefix `research: evolve — [summary of changes]`
+### Step 3 — Proposal Generation
 
-### 6. Verification
-- Run the § Budget & Structure Check (G8) — the wc -l trend, the 5-check structural sweep, the dispatcher-shape check
-- Run `semantic_router.py rebuild-index` to update route embeddings
-- Run `reflect.py stats` again to confirm the tool still works after edits
-- Verify no existing phase file has broken markdown (headers, tables, gate criteria)
-- Run a smoke test: pick one recent reflection and confirm it would still route correctly
+For each pattern from Step 2, emit a **proposal record** with two parallel lists. Every entry MUST cite ≥ 3 data points (`reflection_id` / `outcome_id` / `rule_id`).
+
+```yaml
+proposal_id: <slug>
+runtime_actions:
+  - action: boost-rule | retire-rule | add-route-example
+    target: <rule_id or mode_name>
+    args: <CLI args, ready to execute>
+    rationale: <one-liner>
+    evidence_refs: [<reflection_id | outcome_id | rule_id>, ...]
+bundle_changes:
+  - file: phases/phase-N.md | reference/<file>.md | tools/semantic_router.py
+    change_type: new-gate | reword-phase | router-default-edit | policy-update
+    snippet: <suggested unified diff or replace-block>
+    rationale: <one-liner>
+    evidence_refs: [...]
+```
+
+### Step 4 — User Review
+
+Present the proposal record(s) as a numbered list — `runtime_actions` first, `bundle_changes` second. Per entry show: change, evidence refs, risk if rejected, apply path. The user approves, rejects, or modifies each individually. Rejected entries log to `evolution.md` § Skill Update Proposals with reason and may resurface in a later cycle.
+
+### Step 5 — Application
+
+**5a. Runtime apply (per approved `runtime_actions` entry).** Before executing the CLI action:
+
+1. Append a one-line **undo manifest** record to `evolution.md` § Runtime Apply Manifest containing the pre-edit state — for `boost-rule` / `retire-rule`, the rule's current `rules.jsonl` line; for `add-route-example`, the route's pre-edit example list. This is the rollback paper trail — there is no git-level revert for runtime state.
+2. Execute the CLI: `research-reflect boost-rule --rule-id <id>` / `research-reflect retire-rule --rule-id <id>` / `research-router add-example --mode <m> --phrase "<p>"`.
+3. Append the apply-success line to the appropriate `evolution.md` section per change semantics (Learned Anti-Patterns / Project Lessons / Keyword Supplements).
+
+**5b. Bundle proposal (per approved `bundle_changes` entry).**
+
+1. `mkdir -p "${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/proposals"`.
+2. Write `proposal-<UTC-yyyymmddTHHMMSS>-<short-slug>.md` with this schema:
+
+```markdown
+---
+created: <UTC ISO 8601, to the second>
+source_evidence_refs: [<reflection_id | outcome_id | rule_id>, ...]
+target_files: [phases/phase-N.md, reference/<file>.md, ...]
+change_type: new-gate | reword-phase | router-default-edit | policy-update
+scope: skill-bundle | project-local
+project_context: <project name or "n/a">
+redaction_note: <"none" | "sensitive content scrubbed: <what>">
+status: proposed
+---
+
+## Why
+<rationale, with evidence quotes>
+
+## Proposed change
+<unified diff or replace-block>
+
+## Maintainer handoff
+1. `cd ~/code/research-workflow` (or another writable clone of the bundle).
+2. Apply the diff to the listed target_files.
+3. Re-run the § Budget & Structure Check (G8) sweep in that clone.
+4. Bump plugin version; commit; re-release.
+```
+
+3. Append a one-liner to `evolution.md` § Skill Update Proposals: `- [DATE] [TARGET_FILES] [CHANGE_TYPE]: <description> (proposal: <path>, status: proposed)`.
+
+**There is no `git commit` step inside `/research evolve`.** Public installs run from a read-only plugin cache; the maintainer's clone receives bundle changes via the proposal documents.
+
+### Step 6 — Verification
+
+Run the G8 mechanical hook (see § Budget & Structure Check below):
+
+- The 5-check structural sweep
+- The dispatcher-shape check (`SKILL.md` `wc -l` ≤ ~400, no fenced block > ~15 lines)
+- The `wc -l` trend (reported only — never a reject reason on its own)
+
+Additional, when runtime changes applied:
+
+- `research-router rebuild-index` — only if any `add-route-example` applied
+- `research-reflect stats` — sanity (the tool still loads after JSONL edits)
+
+The "one recent reflection still routes correctly" smoke from earlier versions is removed: it produced false-positive failures whenever the input had no router-touching changes, and conflated "tool returns" with "routing logic is correct".
 
 ## Health Score
 
-Compute after data collection to guide evolution frequency:
+Computed in Step 1 to gauge whether evolution is premature:
 
 ```
-Score = (hard_rules x 3 + soft_rules x 1 + logged_outcomes x 0.5) / max(total_invocations, 1)
+Score = min(outcomes / 20, 1.0)
+      + min((2 * hard_rules + soft_rules) / 10, 1.0)
+      + 0.5 * min(reflections / 3, 1.0)
 ```
 
-| Score Range | Maturity | Recommended Cadence |
-|-------------|----------|---------------------|
-| < 1.0 | Cold start | Keep using the skill; evolve after 20+ invocations |
-| 1.0 - 3.0 | Learning | Evolve monthly |
-| > 3.0 | Mature | Evolve quarterly |
+| Score | Maturity | Recommended Cadence |
+|---|---|---|
+| < 0.75 | Cold start | Keep using the skill; revisit after ≥ 20 outcomes or ≥ 5 hard rules |
+| 0.75 – 1.75 | Learning | Evolve monthly |
+| ≥ 1.75 | Mature | Evolve quarterly |
 
-Report the health score at the start of every evolution run so the user knows whether evolution is premature.
+The previous formula `(3 * hard + soft + 0.5 * outcomes) / max(total_invocations, 1)` used a denominator `reflect.py` does not emit (`total_invocations`), and produced 3.0 for the absurd "one hard rule, no outcomes" case. The new shape is bounded (0 – 2.5), monotonic in each dimension, and rewards evidence breadth across rules / outcomes / reflections.
+
+Report the score at the start of every evolution run.
 
 ## Budget & Structure Check (G8)
 
@@ -151,10 +195,12 @@ APPLY gate.
 
 ## Gate Criteria
 
-> **Rubric contract** — input `accumulated reflection / outcome data` → scores `Evolution Log entry`; verdict **PASS / CONDITIONAL / BLOCK**; dimensions = the criteria below.
+> **Rubric contract** — input `accumulated reflection / rule / outcome data + proposal record(s)` → scores `Evolution Log entry`; verdict **PASS / CONDITIONAL / BLOCK**; dimensions = the criteria below.
 
-- Do you have >=20 logged invocations to analyze? (If not, evolution is premature)
-- Has it been >=2 weeks since the last evolution? (Avoid thrashing)
-- Did every proposal cite >=3 data points as evidence?
-- Did the user explicitly approve each applied change?
-- Does `semantic_router.py rebuild-index` complete without errors after changes?
+- Does the Health Score support evolution (≥ 0.75)? If not, defer.
+- Has it been ≥ 2 weeks since the last evolution? (Avoid thrashing.)
+- Did every proposal entry cite ≥ 3 evidence refs?
+- Did the user explicitly approve each applied entry?
+- For runtime applies, was the pre-state recorded to `evolution.md` § Runtime Apply Manifest BEFORE the CLI ran?
+- For bundle proposals, does each `proposal-*.md` carry the full schema (frontmatter + Why + Proposed change + Maintainer handoff)?
+- Does `research-router rebuild-index` complete without errors (if any route changes applied)?
