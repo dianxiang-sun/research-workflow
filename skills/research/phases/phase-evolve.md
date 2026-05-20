@@ -125,7 +125,7 @@ status: proposed
 4. Bump plugin version; commit; re-release.
 ```
 
-3. Append a one-liner to the runtime evolution log (`${RESEARCH_SKILL_STATE_DIR}/evolution-log.md` § Skill Update Proposals): `- [DATE] [TARGET_FILES] [CHANGE_TYPE]: <description> (proposal: <path>, status: proposed)`.
+3. Append a one-liner to the runtime evolution log (`${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/evolution-log.md` § Skill Update Proposals): `- [DATE] [TARGET_FILES] [CHANGE_TYPE]: <description> (proposal: <path>, status: proposed)`.
 
 **There is no `git commit` step inside `/research evolve`.** Public installs run from a read-only plugin cache; the maintainer's clone receives bundle changes via the proposal documents.
 
@@ -221,6 +221,6 @@ APPLY gate.
 - Has it been ≥ 2 weeks since the last evolution? (Avoid thrashing.)
 - Did every proposal entry cite ≥ 3 evidence refs?
 - Did the user explicitly approve each applied entry?
-- For runtime applies, was the pre-state recorded to `evolution.md` § Runtime Apply Manifest BEFORE the CLI ran?
+- For runtime applies, was the pre-state recorded to `${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/evolution-log.md` § Runtime Apply Manifest BEFORE the CLI ran?
 - For bundle proposals, does each `proposal-*.md` carry the full schema (frontmatter + Why + Proposed change + Maintainer handoff)?
 - Does `research-router rebuild-index` complete without errors (if any route changes applied)?
