@@ -88,7 +88,7 @@ This SKILL.md and the `phases/` / `reference/` files frequently shorten this to 
 ## Execution Protocol
 
 ### Full project mode (has `.claude/research-project.local.md`)
-1. Read `.claude/research-project.local.md` (config), `research-state.yaml` (live state), `findings.md` (narrative memory). If `research-state.yaml` is absent, this is a pre-M2 project — read the legacy flat `research-{progress,risks,decisions}.md` instead (one-release fallback).
+1. Read `.claude/research-project.local.md` (config), `research-state.yaml` (live state), `findings.md` (narrative memory).
 2. Read `phases/phase-{N}.md` for the relevant phase
 3. Apply Global Rules + the Autonomy Policy throughout
 4. At phase completion, ALWAYS offer Adversarial Gate before advancing
@@ -123,7 +123,7 @@ When invoked standalone, ask the user for minimal context (paper type, venue, to
 4. Confirm: "Project initialized. Run `/research-workflow:research explore` to begin."
 
 ### `/research status` protocol
-Read `.claude/research-state.yaml` (if absent → legacy `research-{progress,risks,decisions}.md`, one-release fallback). Display:
+Read `.claude/research-state.yaml`. Display:
 - Current phase + paper type (type from `research-project.local.md`)
 - Days to deadline (if set); next open milestone (from `milestones:`)
 - Phase / gate status (from `phases:`); per-phase typed artifact + lifecycle status (from `artifacts:`)

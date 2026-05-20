@@ -105,10 +105,3 @@ fields plus its RQ-specific fields.
 | measurement chain | RQ → experiment → metric → data |
 | feasibility-pilot result | go / no-go if a pilot was run, else `n/a` |
 | abandon-if | when to drop or reformulate this RQ |
-
-## Fallback — pre-M2 projects
-
-A project initialized before M2 may still carry flat `.claude/research-{progress,risks,decisions}.md`.
-`/research` reads those if `research-state.yaml` is absent — a one-release grace
-period; the operational fallback logic is in `SKILL.md`. Migrate by copying the two
-templates in, moving risks/decisions across, then deleting the flat files.

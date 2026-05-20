@@ -180,10 +180,11 @@ kind of mechanical check the skill already does.
    2. every gated `phases/` file (all but `phase-writing-memory.md`, which has no gate)
       has an `## Emitted Artifact` section and a `## Gate Criteria` whose first line is
       a `> **Rubric contract** —` header naming input · emitted artifact · verdict;
-   3. no live cross-reference points to an M2-retired file — `phase-progress-tracker.md`
-      or the flat `research-progress` / `research-risks` / `research-decisions` files —
-      except the sanctioned `SKILL.md` one-release fallback, `capability-artifacts.md`,
-      and this G8 spec naming them;
+   3. no live cross-reference (plain or brace form) points to an M2-retired file —
+      `phase-progress-tracker.md`, `research-progress`, `research-risks`, `research-decisions`,
+      or the brace form `research-{progress,risks,decisions}.md` — except this G8 spec
+      self-reference at the exact path `./phases/phase-evolve.md` (post-L1-cleanup, no
+      other sanctioned fallback exists);
    4. the Phase-3 mandatory-question count is identical in every file that states it;
    5. the skill loads — frontmatter intact, `research-state.yaml` parses, `/research status` dispatches.
    6. no `python3 reflect.py` / `python3 semantic_router.py` bare invocations — tools are
@@ -204,7 +205,7 @@ kind of mechanical check the skill already does.
 Concrete read-only checks:
 - rubric headers — `grep -LF '**Rubric contract**' phases/phase-*.md` lists any gated
   phase missing the header (only `phase-writing-memory.md` is expected).
-- retired-file pointers — `grep -rl 'phase-progress-tracker\|research-progress\|research-risks\|research-decisions' --include='*.md' . | grep -vE 'phase-evolve|SKILL|capability-artifacts'` must be empty (the G8 spec, the `SKILL.md` one-release fallback, and `capability-artifacts.md` legitimately name these retired tokens; any other hit is a dangling pointer).
+- retired-file pointers — `find . \( -name '*.md' -o -name '*.yaml' \) ! -path './phases/phase-evolve.md' -print0 | xargs -0 grep -nE '(^|[^[:alnum:]_-])(phase-progress-tracker(\.md)?|research-(progress|risks|decisions)(\.md)?|research-\{[[:space:]]*progress[[:space:]]*,[[:space:]]*risks[[:space:]]*,[[:space:]]*decisions[[:space:]]*\}(\.md)?)([^[:alnum:]_-]|$)'` must be empty (the G8 spec at the exact path `./phases/phase-evolve.md` is the only sanctioned mention; any other file hit — plain or brace form, with or without `.md` suffix — is a dangling retired-token pointer). Known limitations: reordered brace forms (e.g., `research-{risks,progress,decisions}`) and multiline tokens broken across markdown reflow are out of scope.
 - Phase-3 count — `grep -rhoE 'MANDATORY 1[0-9]' --include='*.md' .` must read "12" everywhere.
 - dispatcher-shape — `wc -l SKILL.md`, then scan `SKILL.md` for a code-fence pair more than ~15 lines apart.
 - tool naming (sweep #6) — `find . \( -name '*.md' -o -name '*.py' \) ! -path './phases/phase-evolve.md' -print0 | xargs -0 grep -nE 'python3 (reflect|semantic_router)\.py'` must be empty (the G8 spec itself names these tokens at the exact path `./phases/phase-evolve.md`; any other file hit is drift back to bare invocation) (H1 anchor). Run with cwd = `skills/research/`.
