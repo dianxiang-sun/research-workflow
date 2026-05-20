@@ -133,7 +133,7 @@ status: proposed
 
 Run the G8 mechanical hook (see § Budget & Structure Check below):
 
-- The 5-check structural sweep
+- The 8-check structural sweep
 - The dispatcher-shape check (`SKILL.md` `wc -l` ≤ ~400, no fenced block > ~15 lines)
 - The `wc -l` trend (reported only — never a reject reason on its own)
 
@@ -188,13 +188,16 @@ kind of mechanical check the skill already does.
    5. the skill loads — frontmatter intact, `research-state.yaml` parses, `/research status` dispatches.
    6. no `python3 reflect.py` / `python3 semantic_router.py` bare invocations — tools are
       always called via the `research-reflect` / `research-router` wrapper names (H1 anchor);
-   7. no user-facing bare `/research <mode>` in `reference/dispatch-recipes.md`, `README.md`,
-      or as a Python `print` / `return` literal in `tools/*.py` — runtime output / user-typing
-      strings use canonical `/research-workflow:research <mode>` (M1 anchor; SKILL.md "canonical");
+   7. no user-facing bare `/research <mode>` in `reference/dispatch-recipes.md`, `../../README.md`,
+      anywhere under `templates/` (recursive), or as a quoted literal in `tools/*.py` — runtime
+      output / user-typing strings use canonical `/research-workflow:research <mode>` (M1 anchor;
+      SKILL.md "canonical"). Heuristic on `tools/*.py`: fragmented Python forms (split-print,
+      str-concat across literals, `.join` over fragments) are NOT caught — APPLY artifact below;
    8. every `*.md` line that mentions `/verify-before-write` or `/verify-citations` (G1
       companion commands) also carries a substring fallback marker — `installed`,
-      `otherwise`, `fallback`, `inline manual`, `re-open`, or `MUST` — so the verification
-      stays mandatory when the companion command is absent (H3 anchor).
+      `otherwise`, `fallback`, `inline manual`, `re-open`, or `MUST` — as a *heuristic
+      missing-marker lint* (necessary but NOT sufficient — semantic fallback check is
+      REQUIRED at G8 APPLY manual review of every modified `/verify-*` line; H3 anchor).
 3. **Dispatcher-shape check** — `wc -l SKILL.md` ≤ ~400, and no fenced code block in
    `SKILL.md` exceeds ~15 lines.
 
@@ -204,9 +207,14 @@ Concrete read-only checks:
 - retired-file pointers — `grep -rl 'phase-progress-tracker\|research-progress\|research-risks\|research-decisions' --include='*.md' . | grep -vE 'phase-evolve|SKILL|capability-artifacts'` must be empty (the G8 spec, the `SKILL.md` one-release fallback, and `capability-artifacts.md` legitimately name these retired tokens; any other hit is a dangling pointer).
 - Phase-3 count — `grep -rhoE 'MANDATORY 1[0-9]' --include='*.md' .` must read "12" everywhere.
 - dispatcher-shape — `wc -l SKILL.md`, then scan `SKILL.md` for a code-fence pair more than ~15 lines apart.
-- tool naming (sweep #6) — `grep -rnE 'python3 (reflect|semantic_router)\.py' --include='*.md' --include='*.py' . | grep -v phase-evolve.md` must be empty (the G8 spec itself names these tokens; any other hit is drift back to bare invocation) (H1 anchor).
-- canonical command (sweep #7) — `grep -nE '/research [A-Za-z0-9_-]+' reference/dispatch-recipes.md README.md` and `grep -nE '"\s*/research [A-Za-z0-9_-]+|f"\s*/research [A-Za-z0-9_-]+' tools/*.py` must both be empty. Shorthand `/research <mode>` remains legal *inside* `SKILL.md` / `phases/` / `reference/` prose (see SKILL.md "canonical" anchor).
-- verify fallback (sweep #8) — `grep -rnE '/verify-(before-write|citations)' --include='*.md' . | grep -v phase-evolve.md | grep -vE 'installed|otherwise|fallback|inline manual|re-open|MUST'` must be empty (H3 anchor).
+- tool naming (sweep #6) — `find . \( -name '*.md' -o -name '*.py' \) ! -path './phases/phase-evolve.md' -print0 | xargs -0 grep -nE 'python3 (reflect|semantic_router)\.py'` must be empty (the G8 spec itself names these tokens at the exact path `./phases/phase-evolve.md`; any other file hit is drift back to bare invocation) (H1 anchor). Run with cwd = `skills/research/`.
+- canonical command (sweep #7) — all four must be empty:
+  (a) `grep -nE '/research [A-Za-z0-9_-]+' reference/dispatch-recipes.md ../../README.md`
+  (b) `grep -rnE '/research [A-Za-z0-9_-]+' templates/`
+  (c) `grep -nE "['\"][[:space:]]*/research [A-Za-z0-9_-]*" tools/*.py`
+  (d) `grep -nE "['\"]/research['\"]" tools/*.py`
+  Shorthand `/research <mode>` remains legal *inside* `SKILL.md` / `phases/` / `reference/` prose (see SKILL.md "canonical" anchor). Symlinked `templates/` subdirs are out of scope for (b) — BSD `grep -r` does not traverse symlinks by default; reviewer manually inspects at G8 APPLY. Fragmented Python forms (split-print, str-concat across literals, `.join` over fragments) are heuristic-only NOT caught by (c)/(d); APPLY artifact: `git diff -- skills/research/tools/*.py | grep -nE '^\+[^+].*\bresearch\b'` reviewed manually.
+- verify fallback (sweep #8) — `find . -name '*.md' ! -path './phases/phase-evolve.md' -print0 | xargs -0 grep -nE '/verify-(before-write|citations)' | grep -vE 'installed|otherwise|fallback|inline manual|re-open|MUST'` must be empty. Heuristic missing-marker check (necessary but NOT sufficient — reverse-semantic lines carrying a marker still pass). APPLY artifact: `git diff -- skills/research/ | grep -nE '^\+.*\b/verify-(before-write|citations)\b'` output, with each resulting line annotated by reviewer as `fallback in place` or `reverse-semantic risk` (H3 anchor).
 
 ### Budget & Structure checklist (required artifact)
 

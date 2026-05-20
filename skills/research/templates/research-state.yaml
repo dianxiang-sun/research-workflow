@@ -1,5 +1,5 @@
 # Research Project State — typed, machine-readable live state.
-# Created by `/research init`; updated by every `/research` mode and at each Gate.
+# Created by `/research-workflow:research init`; updated by every `/research-workflow:research <mode>` invocation and at each Gate.
 # Owns LIVE STATE only. Config (name, domain, paper type, venue, autonomy) is
 # canonical in research-project.local.md; narrative memory is findings.md.
 # Supersedes the pre-M2 flat files research-{progress,risks,decisions}.md.

@@ -1,6 +1,6 @@
 # Research Project Configuration Template
 #
-# This is a TEMPLATE. Created by `/research-workflow:research init` from this template using Read+Write into .claude/research-project.local.md (M9 — see SKILL.md `/research init` protocol).
+# This is a TEMPLATE. Created by `/research-workflow:research init` from this template using Read+Write into .claude/research-project.local.md (M9 — see SKILL.md `/research-workflow:research init` protocol section).
 # Fill in project-specific details. Read by `/research-workflow:research` at every invocation.
 
 ---

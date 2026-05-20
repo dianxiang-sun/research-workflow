@@ -201,7 +201,7 @@ Phase subfiles contain `[SYSTEMS]` `[EMPIRICAL]` etc. markers for type-specific 
 ### G8: Net-Complexity Budget
 - The skill's budget is **structural health, not raw line count** (`RESTRUCTURE-PLAN.md` §15). `SKILL.md` stays a thin dispatcher; `reference/` capability docs grow only by justification; DRY is enforced.
 - Every `/research evolve` change proposal — and, during the restructure, every migration step — MUST carry a **Budget & Structure checklist**: the `wc -l` delta + cumulative trend · each new `reference/`/`templates/` file's D/R justification · each change classed *relocation* (names its paired delete) or *net-new gap-fill* (names the D/R item) · a DRY / pointer audit.
-- ENFORCED — `/research evolve` runs the G8 mechanical hook (`phases/phase-evolve.md` § Budget & Structure Check): the `wc -l` trend, the 5-check structural sweep, the `SKILL.md` dispatcher-shape check. G8 REJECTS a proposal that omits the checklist or fails a mechanical check — never on a positive line-count delta alone.
+- ENFORCED — `/research evolve` runs the G8 mechanical hook (`phases/phase-evolve.md` § Budget & Structure Check): the `wc -l` trend, the 8-check structural sweep, the `SKILL.md` dispatcher-shape check. G8 REJECTS a proposal that omits the checklist or fails a mechanical check — never on a positive line-count delta alone.
 
 ### G9: Review-Simulation Honesty
 - `/research review` and the multi-persona reviewer personas (Phase 7; the Adversarial Gate) **simulate** peer review — they are a pre-mortem self-review of the authors' OWN work, run by or for that work's authors to surface weaknesses before submission. They carry no venue authority.
