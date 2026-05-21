@@ -33,6 +33,15 @@ from datetime import datetime
 from pathlib import Path
 import hashlib
 import argparse
+from contextlib import contextmanager
+
+# L8 v4: POSIX fcntl advisory lock for rules.jsonl writers (race fix).
+# Windows lacks fcntl — concurrent rules.jsonl mutations will SystemExit loudly
+# rather than silently race. Run reflect.py on POSIX (Mac/Linux/WSL).
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 
 
 def _state_dir() -> Path:
@@ -113,6 +122,30 @@ def _append_validation(rule: dict, phase, result: str):
             "context (status guard requires >= 2 distinct pass phases).",
             file=sys.stderr,
         )
+
+
+@contextmanager
+def _rules_lock():
+    """L8 v4 advisory lock for rules.jsonl read-modify-write.
+    All RULES_FILE writers (log-rule, boost-rule, weaken-rule, retire-rule) MUST
+    acquire this before reading + writing, else concurrent invocations lose
+    updates (round-22 reproducer: 8 parallel boost calls left only 1 event).
+    POSIX-only via fcntl.flock; lock file persistent (do not unlink — inode
+    reuse can split lock; see Codex round-23 artifact)."""
+    if fcntl is None:
+        raise SystemExit(
+            "rules.jsonl mutation requires POSIX fcntl locking; Windows is "
+            "unsupported. Run on Mac/Linux/WSL, or set "
+            "RESEARCH_SKILL_STATE_DIR to a POSIX filesystem."
+        )
+    lock_path = MEMORY_DIR / "rules.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(lock_path, "a+") as lock_fd:
+        fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
 
 
 def _recompute_rule_strength(rule: dict):
@@ -202,13 +235,15 @@ def cmd_log_rule(args):
     }
     # T5 — dedup on apply: an identical rule (same phase / rule text / domain) is not
     # re-appended; rule strength evolves via boost/weaken-rule, never via re-logging.
-    existing = find_duplicate(read_jsonl(RULES_FILE), record, ("phase", "rule", "domain"))
-    if existing:
-        print(f"[dedup] identical rule already logged as {existing} — not appended; "
-              f"use 'boost-rule {existing}' if this recurrence validates it.")
-        return
-    append_jsonl(RULES_FILE, record)
-    print(json.dumps(record, indent=2, ensure_ascii=False))
+    # L8 v4: lock around dedup-check + append to serialize with concurrent boost/weaken/retire.
+    with _rules_lock():
+        existing = find_duplicate(read_jsonl(RULES_FILE), record, ("phase", "rule", "domain"))
+        if existing:
+            print(f"[dedup] identical rule already logged as {existing} — not appended; "
+                  f"use 'boost-rule {existing}' if this recurrence validates it.")
+            return
+        append_jsonl(RULES_FILE, record)
+        print(json.dumps(record, indent=2, ensure_ascii=False))
 
 
 def cmd_log_outcome(args):
@@ -266,91 +301,97 @@ def cmd_query_outcomes(args):
 def cmd_boost_rule(args):
     """Increment times_tested + times_validated, append PASS validation event,
     recompute strength via L8 hard-status guard (see _recompute_rule_strength).
-    Raises SystemExit if rule is retired."""
-    records = read_jsonl(RULES_FILE)
-    updated = False
-    new_records = []
-    for r in records:
-        if r["id"] == args.rule_id:
-            r["times_tested"] = r.get("times_tested", 0) + 1
-            r["times_validated"] = r.get("times_validated", 0) + 1
-            _append_validation(r, args.phase, "pass")
-            _recompute_rule_strength(r)
-            updated = True
-            print(f'Rule {r["id"]} boosted: confidence={r["confidence"]:.2f}, status={r["status"]}')
-        new_records.append(r)
-    if updated:
-        import tempfile
-        fd, tmp_path = tempfile.mkstemp(dir=MEMORY_DIR, suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w") as f:
-                for r in new_records:
-                    f.write(json.dumps(r, ensure_ascii=False) + "\n")
-            os.replace(tmp_path, RULES_FILE)
-        except:
-            os.unlink(tmp_path)
-            raise
-    else:
-        print(f"Rule {args.rule_id} not found.")
+    Raises SystemExit if rule is retired. L8 v4: read-modify-write under
+    rules.lock fcntl flock (concurrent-safe with other RULES_FILE writers)."""
+    with _rules_lock():
+        records = read_jsonl(RULES_FILE)
+        updated = False
+        new_records = []
+        for r in records:
+            if r["id"] == args.rule_id:
+                r["times_tested"] = r.get("times_tested", 0) + 1
+                r["times_validated"] = r.get("times_validated", 0) + 1
+                _append_validation(r, args.phase, "pass")
+                _recompute_rule_strength(r)
+                updated = True
+                print(f'Rule {r["id"]} boosted: confidence={r["confidence"]:.2f}, status={r["status"]}')
+            new_records.append(r)
+        if updated:
+            import tempfile
+            fd, tmp_path = tempfile.mkstemp(dir=MEMORY_DIR, suffix=".tmp")
+            try:
+                with os.fdopen(fd, "w") as f:
+                    for r in new_records:
+                        f.write(json.dumps(r, ensure_ascii=False) + "\n")
+                os.replace(tmp_path, RULES_FILE)
+            except:
+                os.unlink(tmp_path)
+                raise
+        else:
+            print(f"Rule {args.rule_id} not found.")
 
 
 def cmd_weaken_rule(args):
     """Increment times_tested only (NOT times_validated), append FAIL validation
     event, recompute strength via L8 hard-status guard. Raises SystemExit if
-    rule is retired."""
-    records = read_jsonl(RULES_FILE)
-    updated = False
-    new_records = []
-    for r in records:
-        if r["id"] == args.rule_id:
-            r["times_tested"] = r.get("times_tested", 0) + 1
-            # DO NOT increment times_validated
-            _append_validation(r, args.phase, "fail")
-            _recompute_rule_strength(r)
-            updated = True
-            print(f'Rule {r["id"]} weakened: confidence={r["confidence"]:.2f}, status={r["status"]}')
-            print(json.dumps(r, indent=2, ensure_ascii=False))
-        new_records.append(r)
-    if updated:
-        import tempfile
-        fd, tmp_path = tempfile.mkstemp(dir=MEMORY_DIR, suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w") as f:
-                for r in new_records:
-                    f.write(json.dumps(r, ensure_ascii=False) + "\n")
-            os.replace(tmp_path, RULES_FILE)
-        except:
-            os.unlink(tmp_path)
-            raise
-    else:
-        print(f"Rule {args.rule_id} not found.")
+    rule is retired. L8 v4: read-modify-write under rules.lock fcntl flock."""
+    with _rules_lock():
+        records = read_jsonl(RULES_FILE)
+        updated = False
+        new_records = []
+        for r in records:
+            if r["id"] == args.rule_id:
+                r["times_tested"] = r.get("times_tested", 0) + 1
+                # DO NOT increment times_validated
+                _append_validation(r, args.phase, "fail")
+                _recompute_rule_strength(r)
+                updated = True
+                print(f'Rule {r["id"]} weakened: confidence={r["confidence"]:.2f}, status={r["status"]}')
+                print(json.dumps(r, indent=2, ensure_ascii=False))
+            new_records.append(r)
+        if updated:
+            import tempfile
+            fd, tmp_path = tempfile.mkstemp(dir=MEMORY_DIR, suffix=".tmp")
+            try:
+                with os.fdopen(fd, "w") as f:
+                    for r in new_records:
+                        f.write(json.dumps(r, ensure_ascii=False) + "\n")
+                os.replace(tmp_path, RULES_FILE)
+            except:
+                os.unlink(tmp_path)
+                raise
+        else:
+            print(f"Rule {args.rule_id} not found.")
 
 
 def cmd_retire_rule(args):
-    """Set rule status to retired and confidence to 0.0."""
-    records = read_jsonl(RULES_FILE)
-    updated = False
-    new_records = []
-    for r in records:
-        if r["id"] == args.rule_id:
-            r["status"] = "retired"
-            r["confidence"] = 0.0
-            updated = True
-            print(f'Rule {r["id"]} retired.')
-        new_records.append(r)
-    if updated:
-        import tempfile
-        fd, tmp_path = tempfile.mkstemp(dir=MEMORY_DIR, suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w") as f:
-                for r in new_records:
-                    f.write(json.dumps(r, ensure_ascii=False) + "\n")
-            os.replace(tmp_path, RULES_FILE)
-        except:
-            os.unlink(tmp_path)
-            raise
-    else:
-        print(f"Rule {args.rule_id} not found.")
+    """Set rule status to retired and confidence to 0.0. L8 v4: read-modify-
+    write under rules.lock fcntl flock (concurrent-safe with other RULES_FILE
+    writers)."""
+    with _rules_lock():
+        records = read_jsonl(RULES_FILE)
+        updated = False
+        new_records = []
+        for r in records:
+            if r["id"] == args.rule_id:
+                r["status"] = "retired"
+                r["confidence"] = 0.0
+                updated = True
+                print(f'Rule {r["id"]} retired.')
+            new_records.append(r)
+        if updated:
+            import tempfile
+            fd, tmp_path = tempfile.mkstemp(dir=MEMORY_DIR, suffix=".tmp")
+            try:
+                with os.fdopen(fd, "w") as f:
+                    for r in new_records:
+                        f.write(json.dumps(r, ensure_ascii=False) + "\n")
+                os.replace(tmp_path, RULES_FILE)
+            except:
+                os.unlink(tmp_path)
+                raise
+        else:
+            print(f"Rule {args.rule_id} not found.")
 
 
 def cmd_export_summary(args):

@@ -1,6 +1,6 @@
 {
   "name": "research-workflow",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "End-to-end research workflow with adversarial validation gates: direction exploration, literature survey, method design, evaluation, experiments, paper writing, simulated peer review, and rebuttal.",
   "author": {
     "name": "dianxiang-sun"
