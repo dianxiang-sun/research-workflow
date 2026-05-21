@@ -84,6 +84,18 @@ def read_jsonl(filepath: Path) -> list[dict]:
     return records
 
 
+def _confidence_type(v: str) -> float:
+    """argparse type for --confidence: float in [0.0, 1.0].
+    Rejects out-of-range, nan, inf, and non-floats with argparse.ArgumentTypeError."""
+    try:
+        f = float(v)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"confidence must be a float, got {v!r}")
+    if not (0.0 <= f <= 1.0):
+        raise argparse.ArgumentTypeError(f"confidence must be in [0.0, 1.0], got {f}")
+    return f
+
+
 def _emit_json(records: list[dict]):
     """Emit raw JSONL records after query filters; do not normalize schema,
     truncate fields, or add computed convenience fields."""
@@ -234,7 +246,7 @@ def cmd_log_reflection(args):
     # Auto-extract rule if failure
     if args.result == "failure" and args.lesson:
         print("\n[Auto] Consider extracting a predicate rule from this failure.")
-        print(f'  research-reflect log-rule --phase {args.skill} --rule "IF ... THEN ..." --confidence 0.5 --source {record["id"]}')
+        print(f'  research-reflect log-rule --phase <N> --rule "IF ... THEN ..." --confidence 0.5 --source {record["id"]}')
 
 
 def cmd_log_rule(args):
@@ -248,8 +260,13 @@ def cmd_log_rule(args):
         "times_validated": 0,
         "source": args.source,  # reflection ID or "manual"
         "domain": args.domain,
-        "status": "soft" if args.confidence < 0.7 else "hard",
-        "schema_version": 1,
+        # Always start "soft" — L8 hard-status guard (confidence>=0.7 AND
+        # times_tested>=3 AND >=2 distinct pass phases) is enforced by
+        # _recompute_rule_strength on subsequent boost/weaken calls. Initializing
+        # "hard" from confidence alone bypasses the guard for fresh records.
+        "status": "soft",
+        "validation_events": [],
+        "schema_version": 2,
     }
     # T5 — dedup on apply: an identical rule (same phase / rule text / domain) is not
     # re-appended; rule strength evolves via boost/weaken-rule, never via re-logging.
@@ -296,7 +313,7 @@ def cmd_query_reflections(args):
 
 def cmd_query_rules(args):
     records = read_jsonl(RULES_FILE)
-    if args.phase:
+    if args.phase is not None:
         records = [r for r in records if str(r.get("phase")) == str(args.phase)]
     if hasattr(args, 'domain') and args.domain:
         records = [r for r in records if r.get("domain", "*") in ("*", args.domain)]
@@ -502,9 +519,9 @@ def main():
                    help="L8(c): the router threshold at miss time (float in [0, 1]; see semantic_router.py)")
 
     p = sub.add_parser("log-rule")
-    p.add_argument("--phase", required=True)
+    p.add_argument("--phase", required=True, type=int)
     p.add_argument("--rule", required=True)
-    p.add_argument("--confidence", type=float, default=0.5)
+    p.add_argument("--confidence", type=_confidence_type, default=0.5)
     p.add_argument("--source", default="manual")
     p.add_argument("--domain", default="*", help="Domain scope for this rule (* = global)")
 
@@ -524,7 +541,7 @@ def main():
                    help="Output raw records as JSON array (full fields, no truncation).")
 
     p = sub.add_parser("query-rules")
-    p.add_argument("--phase", default=None)
+    p.add_argument("--phase", type=int, default=None)
     p.add_argument("--min-confidence", type=float, default=0.0)
     p.add_argument("--domain", default=None, help="Filter rules by domain (* matches all)")
     p.add_argument("--json", dest="json_output", action="store_true",

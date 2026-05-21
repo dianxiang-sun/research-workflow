@@ -83,7 +83,7 @@ This SKILL.md and the `phases/` / `reference/` files frequently shorten this to 
 > **This skill gets smarter with every use.** Five mechanisms work together
 > to make both triggering and content continuously evolve.
 
-→ Full detail in **`reference/learning-mechanisms.md`**: Mechanism 1 (Structured Reflection + Predicate Rules), 2 (Outcome Quality Tracking), 3 (Dynamic Shell Injection), 5 (Semantic Routing), the Post-Invocation Protocol, Progress Tracking, and the `/research evolve` cycle. Mechanism 4 (Three-Tier Memory Architecture) is in **`reference/capability-memory.md`**.
+→ Full detail in **`reference/learning-mechanisms.md`**: Mechanisms 1-5 (Structured Reflection + Predicate Rules, Outcome Quality Tracking, Dynamic Shell Injection, Three-Tier Memory, Semantic Routing), the Post-Invocation Protocol, Progress Tracking, and the `/research evolve` cycle.
 
 ## Execution Protocol
 
@@ -360,8 +360,7 @@ Progressive-disclosure detail lives in `reference/`; `SKILL.md` stays a thin dis
 | File | Contents |
 |------|----------|
 | `reference/dispatch-recipes.md` | intent→recipe decision tree · domain activation · pattern guide · auto-suggestions · recipe optimization |
-| `reference/learning-mechanisms.md` | learning mechanisms 1/2/3/5 · post-invocation protocol · progress tracking · `/research evolve` |
-| `reference/capability-memory.md` | three-tier memory architecture (mechanism 4) |
+| `reference/learning-mechanisms.md` | learning mechanisms 1-5 · post-invocation protocol · progress tracking · `/research evolve` |
 | `reference/capability-critique.md` | Worker-Critic · CitationAgent · citation-context analysis · Generator-Verifier-Reviser |
 | `reference/capability-artifacts.md` | typed artifact contracts · project-state tree · Direction/RQ Card schemas |
 | `reference/capability-evaluation.md` | evaluation-integrity rules · oracle/instrument/contamination · immutable evaluator · leakage audit |
