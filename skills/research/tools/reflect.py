@@ -84,6 +84,20 @@ def read_jsonl(filepath: Path) -> list[dict]:
     return records
 
 
+def _emit_json(records: list[dict]):
+    """Emit raw JSONL records after query filters; do not normalize schema,
+    truncate fields, or add computed convenience fields."""
+    print(json.dumps(records, indent=2, ensure_ascii=False))
+
+
+def _apply_limit(records: list[dict], limit: int) -> list[dict]:
+    if limit < 0:
+        raise SystemExit("--limit must be >= 0")
+    if limit == 0:
+        return records
+    return records[-limit:]
+
+
 def find_duplicate(records: list[dict], candidate: dict, keys: tuple) -> str | None:
     """Return the id of the first record whose every dedup-key field equals the
     candidate's, else None. Content-only — id / timestamp / confidence / counters
@@ -270,7 +284,11 @@ def cmd_query_reflections(args):
     records = read_jsonl(REFLECTIONS_FILE)
     if args.skill:
         records = [r for r in records if r.get("skill_mode") == args.skill]
-    records = records[-(args.limit):]
+    limit = args.limit if args.limit is not None else (0 if args.json_output else 10)
+    records = _apply_limit(records, limit)
+    if args.json_output:
+        _emit_json(records)
+        return
     for r in records:
         status = "✅" if r["result"] == "success" else "⚠️" if r["result"] == "partial" else "❌"
         print(f'{status} [{r["timestamp"][:10]}] {r["skill_mode"]}: {r["lesson"][:80]}')
@@ -285,6 +303,9 @@ def cmd_query_rules(args):
     records = [r for r in records if r.get("confidence", 0) >= args.min_confidence]
     # Sort by confidence descending
     records.sort(key=lambda r: r.get("confidence", 0), reverse=True)
+    if args.json_output:
+        _emit_json(records)
+        return
     for r in records:
         badge = "🔴 HARD" if r.get("status") == "hard" else "🟡 SOFT"
         print(f'{badge} [conf={r["confidence"]:.1f}] {r["rule"][:100]}')
@@ -294,7 +315,11 @@ def cmd_query_outcomes(args):
     records = read_jsonl(OUTCOMES_FILE)
     if args.skill:
         records = [r for r in records if r.get("skill_mode") == args.skill]
-    records = records[-(args.limit):]
+    limit = args.limit if args.limit is not None else (0 if args.json_output else 10)
+    records = _apply_limit(records, limit)
+    if args.json_output:
+        _emit_json(records)
+        return
     for r in records:
         stars = "★" * r.get("score", 0) + "☆" * (5 - r.get("score", 0))
         print(f'{stars} [{r["timestamp"][:10]}] {r["skill_mode"]}: {r.get("task", "")[:60]}')
@@ -493,16 +518,24 @@ def main():
 
     p = sub.add_parser("query-reflections")
     p.add_argument("--skill", default=None)
-    p.add_argument("--limit", type=int, default=10)
+    p.add_argument("--limit", type=int, default=None,
+                   help="Max records; 0 = all. Default: 10, or all with --json.")
+    p.add_argument("--json", dest="json_output", action="store_true",
+                   help="Output raw records as JSON array (full fields, no truncation).")
 
     p = sub.add_parser("query-rules")
     p.add_argument("--phase", default=None)
     p.add_argument("--min-confidence", type=float, default=0.0)
     p.add_argument("--domain", default=None, help="Filter rules by domain (* matches all)")
+    p.add_argument("--json", dest="json_output", action="store_true",
+                   help="Output raw records as JSON array (full fields, no truncation).")
 
     p = sub.add_parser("query-outcomes")
     p.add_argument("--skill", default=None)
-    p.add_argument("--limit", type=int, default=10)
+    p.add_argument("--limit", type=int, default=None,
+                   help="Max records; 0 = all. Default: 10, or all with --json.")
+    p.add_argument("--json", dest="json_output", action="store_true",
+                   help="Output raw records as JSON array (full fields, no truncation).")
 
     p = sub.add_parser("boost-rule")
     p.add_argument("--rule-id", required=True)

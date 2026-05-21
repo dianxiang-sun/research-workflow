@@ -21,13 +21,13 @@ A single proposal record MAY mix both lists (e.g. promote a rule AND propose a g
 
 ### Step 1 — Data
 
-Read the raw JSONL files under `${RESEARCH_SKILL_STATE_DIR}` (default `~/.claude/research/memory/`):
+Load structured memory from `${RESEARCH_SKILL_STATE_DIR}` (default `~/.claude/research/memory/`):
 
 - `rules.jsonl` — id, phase, rule text, confidence, times_tested, times_validated, source, status
 - `outcomes.jsonl` — skill_mode, task, approach, score, failure_reasons
 - `reflections.jsonl` — id, skill_mode, result, what_happened, lesson
 
-Do NOT rely on `research-reflect query-*` for analysis — its human-formatted output strips id / phase / counters that Step 2 needs. Use `research-reflect stats` only for the cold-start sanity exit.
+Use `research-reflect query-rules --json`, `research-reflect query-outcomes --json`, and `research-reflect query-reflections --json` for structured analysis — the default human output strips id / phase / counters that Step 2 needs. Use `research-reflect stats` only for the cold-start sanity exit.
 
 If all three files are empty or missing, there is nothing to evolve — exit. Otherwise record date + per-file record counts as the evolution baseline; compute the Health Score (below).
 
