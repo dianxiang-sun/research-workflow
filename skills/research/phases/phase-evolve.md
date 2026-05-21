@@ -92,7 +92,7 @@ The bundle file `skills/research/evolution.md` is **legacy pre-H2 scaffolding** 
 **5a. Runtime apply (per approved `runtime_actions` entry).** Before executing the CLI action:
 
 1. Append a one-line **undo manifest** record to the runtime evolution log (`${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/evolution-log.md` § Runtime Apply Manifest) containing the pre-edit state — for `boost-rule` / `retire-rule`, the rule's current `rules.jsonl` line; for `add-route-example`, the route's pre-edit example list. This is the rollback paper trail — there is no git-level revert for runtime state.
-2. Execute the CLI: `research-reflect boost-rule --rule-id <id>` / `research-reflect retire-rule --rule-id <id>` / `research-router add-example --mode <m> --phrase "<p>"`.
+2. Execute the CLI: `research-reflect boost-rule --rule-id <id> --phase <N>` / `research-reflect weaken-rule --rule-id <id> --phase <N>` / `research-reflect retire-rule --rule-id <id>` / `research-router add-example --mode <m> --phrase "<p>"`. The `--phase <N>` argument (N = phase number under evolve) is REQUIRED for boost/weaken hard-status guard (L8) — without it the rule cannot harden (status guard requires ≥ 2 distinct pass phases recorded in `validation_events`); the tool emits a warning to stderr when `--phase` is missing.
 3. Append the apply-success line to the appropriate `evolution-log.md` section (under `${RESEARCH_SKILL_STATE_DIR}`) per change semantics (Learned Anti-Patterns / Project Lessons / Keyword Supplements).
 
 **5b. Bundle proposal (per approved `bundle_changes` entry).**
@@ -201,6 +201,12 @@ kind of mechanical check the skill already does.
       REQUIRED at G8 APPLY manual review of every modified `/verify-*` line; H3 anchor).
 3. **Dispatcher-shape check** — `wc -l SKILL.md` ≤ ~400, and no fenced code block in
    `SKILL.md` exceeds ~15 lines.
+4. **Tool smoke artifacts (L8 onwards)** — when proposal touches `tools/*.py`
+   (currently `reflect.py`, `semantic_router.py`), include inline shell smoke
+   artifacts in the proposal's `bundle_changes` description: each new flag /
+   field / guard gets a `bash` snippet that exercises it with
+   `RESEARCH_SKILL_STATE_DIR=$(mktemp -d)` isolation + pasted stdout/stderr.
+   Minimum 1 smoke per new mechanism.
 
 Concrete read-only checks:
 - rubric headers — `grep -LF '**Rubric contract**' phases/phase-*.md` lists any gated

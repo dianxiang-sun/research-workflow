@@ -5,16 +5,25 @@ Handles structured reflections, predicate rules, and outcome tracking.
 
 Usage:
   research-reflect log-reflection --skill <mode> --task <desc> --result <success|partial|failure> --what-happened <text> --lesson <text>
+                                  [--router-miss-original-phrase <text> --router-miss-expected-mode <mode>
+                                   --router-miss-actual-mode <mode> --router-miss-score <0.0-1.0>
+                                   --router-miss-threshold <0.0-1.0>]
   research-reflect log-rule --phase <N> --rule <IF...THEN text> --confidence <0.0-1.0> --source <reflection_id>
   research-reflect log-outcome --skill <mode> --task <desc> --approach <text> --score <1-5> --failure-reasons <text>
   research-reflect query-reflections --skill <mode> [--limit N]
   research-reflect query-rules --phase <N> [--min-confidence 0.5]
   research-reflect query-outcomes --skill <mode> [--limit N]
-  research-reflect boost-rule --rule-id <id>
-  research-reflect weaken-rule --rule-id <id>
+  research-reflect boost-rule --rule-id <id> [--phase <N>]
+  research-reflect weaken-rule --rule-id <id> [--phase <N>]
   research-reflect retire-rule --rule-id <id>
   research-reflect export-summary
   research-reflect stats
+
+L8 hard-status guard (boost-rule / weaken-rule):
+  status='hard' requires confidence >= 0.7, times_tested >= 3, AND >= 2 distinct
+  pass phases (from rules.jsonl validation_events). Without --phase, validation
+  events lack phase context and rule cannot harden (stays 'soft'). Boost/weaken
+  on retired rules raise an error.
 """
 
 import json
@@ -72,7 +81,75 @@ def find_duplicate(records: list[dict], candidate: dict, keys: tuple) -> str | N
     return None
 
 
+# --- L8: rule strength helpers (boost/weaken) ---
+
+def _upgrade_rule_v2(rule: dict):
+    """Ensure rule has validation_events array + schema_version >= 2.
+    Legacy v1 rules auto-upgrade on first boost/weaken touch."""
+    rule.setdefault("validation_events", [])
+    rule["schema_version"] = max(int(rule.get("schema_version", 1)), 2)
+
+
+def _append_validation(rule: dict, phase, result: str):
+    """Append a validation event {phase, ts, result} to rule.validation_events.
+    result must be 'pass' or 'fail'. Raises SystemExit if rule is retired
+    (use log-rule to create a replacement rule with a new id)."""
+    if rule.get("status") == "retired":
+        raise SystemExit(
+            f"Rule {rule.get('id')} is retired. Create a new rule with "
+            f"log-rule (it will receive a new id; update any references) "
+            f"instead of boost/weaken on retired rules."
+        )
+    _upgrade_rule_v2(rule)
+    event = {
+        "phase": str(phase) if phase is not None else None,
+        "ts": datetime.now().isoformat(),
+        "result": result,
+    }
+    rule["validation_events"].append(event)
+    if phase is None:
+        print(
+            "[warn] no --phase provided; rule cannot harden without phase "
+            "context (status guard requires >= 2 distinct pass phases).",
+            file=sys.stderr,
+        )
+
+
+def _recompute_rule_strength(rule: dict):
+    """Recompute confidence and status from counters + validation_events.
+    Hard-status guard (L8): confidence >= 0.7 AND times_tested >= 3 AND
+    >= 2 distinct PASS phases (fail events do NOT contribute to phase diversity)."""
+    tested = rule.get("times_tested", 0)
+    validated = rule.get("times_validated", 0)
+    rule["confidence"] = min(0.99, validated / max(tested, 1))
+    pass_phases = {
+        e.get("phase") for e in rule.get("validation_events", [])
+        if e.get("phase") is not None and e.get("result") == "pass"
+    }
+    rule["status"] = "hard" if (
+        rule["confidence"] >= 0.7
+        and tested >= 3
+        and len(pass_phases) >= 2
+    ) else "soft"
+
+
 def cmd_log_reflection(args):
+    # L8(c): Optional structured router-miss fields (all 5 required together if any given)
+    rm_fields = [
+        ("original-phrase", args.router_miss_original_phrase),
+        ("expected-mode", args.router_miss_expected_mode),
+        ("actual-mode", args.router_miss_actual_mode),
+        ("score", args.router_miss_score),
+        ("threshold", args.router_miss_threshold),
+    ]
+    rm_provided = [n for n, v in rm_fields if v is not None]
+    if rm_provided and len(rm_provided) != len(rm_fields):
+        missing = [n for n, v in rm_fields if v is None]
+        raise SystemExit(
+            "log-reflection: when any --router-miss-* flag is given, ALL 5 are "
+            f"required. Missing: {', '.join('--router-miss-' + m for m in missing)}."
+        )
+
     record = {
         "id": gen_id("ref"),
         "timestamp": datetime.now().isoformat(),
@@ -83,6 +160,24 @@ def cmd_log_reflection(args):
         "lesson": args.lesson,
         "schema_version": 1,
     }
+
+    if rm_provided:
+        # L8(c): validate score + threshold in [0, 1] (catches gross out-of-range typos)
+        for fname, fval in [("score", args.router_miss_score),
+                            ("threshold", args.router_miss_threshold)]:
+            if not (0.0 <= fval <= 1.0):
+                raise SystemExit(
+                    f"log-reflection: --router-miss-{fname} = {fval} must be in [0, 1]."
+                )
+        record["router_miss"] = {
+            "original_phrase": args.router_miss_original_phrase,
+            "expected_mode": args.router_miss_expected_mode,
+            "actual_mode": args.router_miss_actual_mode,
+            "router_score": args.router_miss_score,
+            "router_score_threshold": args.router_miss_threshold,
+        }
+        record["schema_version"] = 2  # bump on router_miss presence
+
     append_jsonl(REFLECTIONS_FILE, record)
     print(json.dumps(record, indent=2, ensure_ascii=False))
     # Auto-extract rule if failure
@@ -169,7 +264,9 @@ def cmd_query_outcomes(args):
 
 
 def cmd_boost_rule(args):
-    """Increment times_tested and times_validated for a rule, update confidence."""
+    """Increment times_tested + times_validated, append PASS validation event,
+    recompute strength via L8 hard-status guard (see _recompute_rule_strength).
+    Raises SystemExit if rule is retired."""
     records = read_jsonl(RULES_FILE)
     updated = False
     new_records = []
@@ -177,9 +274,8 @@ def cmd_boost_rule(args):
         if r["id"] == args.rule_id:
             r["times_tested"] = r.get("times_tested", 0) + 1
             r["times_validated"] = r.get("times_validated", 0) + 1
-            # Update confidence: Bayesian-ish
-            r["confidence"] = min(0.99, r["times_validated"] / max(r["times_tested"], 1))
-            r["status"] = "hard" if r["confidence"] >= 0.7 else "soft"
+            _append_validation(r, args.phase, "pass")
+            _recompute_rule_strength(r)
             updated = True
             print(f'Rule {r["id"]} boosted: confidence={r["confidence"]:.2f}, status={r["status"]}')
         new_records.append(r)
@@ -199,17 +295,18 @@ def cmd_boost_rule(args):
 
 
 def cmd_weaken_rule(args):
-    """Increment times_tested but NOT times_validated; recalc confidence."""
+    """Increment times_tested only (NOT times_validated), append FAIL validation
+    event, recompute strength via L8 hard-status guard. Raises SystemExit if
+    rule is retired."""
     records = read_jsonl(RULES_FILE)
     updated = False
     new_records = []
     for r in records:
         if r["id"] == args.rule_id:
             r["times_tested"] = r.get("times_tested", 0) + 1
-            # Confidence = validated / tested (do NOT increment validated)
-            r["confidence"] = r.get("times_validated", 0) / max(r["times_tested"], 1)
-            if r["confidence"] < 0.3:
-                r["status"] = "soft"
+            # DO NOT increment times_validated
+            _append_validation(r, args.phase, "fail")
+            _recompute_rule_strength(r)
             updated = True
             print(f'Rule {r["id"]} weakened: confidence={r["confidence"]:.2f}, status={r["status"]}')
             print(json.dumps(r, indent=2, ensure_ascii=False))
@@ -322,6 +419,17 @@ def main():
     p.add_argument("--result", required=True, choices=["success", "partial", "failure"])
     p.add_argument("--what-happened", required=True)
     p.add_argument("--lesson", required=True)
+    # L8(c): structured router-miss fields (all 5 required together if any given)
+    p.add_argument("--router-miss-original-phrase", default=None,
+                   help="L8(c): the phrase the user typed that the router mis-classified")
+    p.add_argument("--router-miss-expected-mode", default=None,
+                   help="L8(c): the mode the phrase should have routed to")
+    p.add_argument("--router-miss-actual-mode", default=None,
+                   help="L8(c): the mode the router actually returned (or '<none>' if below threshold)")
+    p.add_argument("--router-miss-score", type=float, default=None,
+                   help="L8(c): the router similarity score (float in [0, 1])")
+    p.add_argument("--router-miss-threshold", type=float, default=None,
+                   help="L8(c): the router threshold at miss time (float in [0, 1]; see semantic_router.py)")
 
     p = sub.add_parser("log-rule")
     p.add_argument("--phase", required=True)
@@ -353,9 +461,15 @@ def main():
 
     p = sub.add_parser("boost-rule")
     p.add_argument("--rule-id", required=True)
+    p.add_argument("--phase", type=int, default=None,
+                   help="L8(b): phase number where rule was validated. Without --phase, "
+                        "rule cannot harden (status guard requires >= 2 distinct pass phases).")
 
     p = sub.add_parser("weaken-rule")
     p.add_argument("--rule-id", required=True)
+    p.add_argument("--phase", type=int, default=None,
+                   help="L8(b): phase number where rule failed validation. "
+                        "Fail events do not contribute to hard-status pass-phase diversity.")
 
     p = sub.add_parser("retire-rule")
     p.add_argument("--rule-id", required=True)

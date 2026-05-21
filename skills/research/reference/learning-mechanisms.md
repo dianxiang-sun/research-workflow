@@ -10,6 +10,10 @@ After every execution, Claude runs:
 research-reflect log-reflection \
   --skill <mode> --task "<desc>" --result <success|partial|failure> \
   --what-happened "<text>" --lesson "<text>"
+# Optional (L8c): when failure is a router miss, attach 5 structured fields:
+#   --router-miss-original-phrase "<phrase>" --router-miss-expected-mode <mode> \
+#   --router-miss-actual-mode <mode> --router-miss-score <0.0-1.0> \
+#   --router-miss-threshold <0.0-1.0>   # see semantic_router.py threshold const
 
 # On failure: extract predicate rule
 research-reflect log-rule \
@@ -17,12 +21,17 @@ research-reflect log-rule \
   --confidence 0.5 --source <reflection_id>
 
 # When a rule proves correct again: boost its confidence
-research-reflect boost-rule --rule-id <id>
+research-reflect boost-rule --rule-id <id> --phase <N>
+# --phase is optional but REQUIRED for the rule to harden (L8 guard).
+# weaken-rule: research-reflect weaken-rule --rule-id <id> --phase <N>
 ```
 
-Rules with confidence ≥ 0.7 become **HARD rules** (mandatory checks).
-Rules with confidence < 0.7 are **SOFT rules** (suggestions).
-The hook automatically injects hard rules into every invocation.
+Rules become **HARD rules** (mandatory checks) only when ALL THREE hold
+(L8 hard-status guard): `confidence >= 0.7`, `times_tested >= 3`, AND
+`>= 2 distinct pass phases` recorded in `validation_events`. Otherwise they
+stay **SOFT rules** (suggestions). The hook automatically injects hard rules
+into every invocation. Boost/weaken on `retired` rules raise an error
+(create a new rule with `log-rule` instead).
 
 ### Mechanism 2: Outcome Quality Tracking (CrewAI Pattern)
 
