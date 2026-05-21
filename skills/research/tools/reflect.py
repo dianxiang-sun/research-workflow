@@ -24,6 +24,10 @@ L8 hard-status guard (boost-rule / weaken-rule):
   pass phases (from rules.jsonl validation_events). Without --phase, validation
   events lack phase context and rule cannot harden (stays 'soft'). Boost/weaken
   on retired rules raise an error.
+
+L8 race fix (v4): all rules.jsonl writers (log-rule, boost-rule, weaken-rule,
+retire-rule) acquire a persistent POSIX-only fcntl.flock on rules.lock around
+their read-modify-write. Windows fails loudly (no silent no-op).
 """
 
 import json
