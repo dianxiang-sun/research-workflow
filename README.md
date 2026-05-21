@@ -72,6 +72,8 @@ then move on. That is the whole loop.
 | 8 | `rebuttal` | Reviewer response, camera-ready, or venue pivot |
 | 9 | `present` | Talk / poster / demo preparation |
 
+> Note: Phases 0-8 are the tracked main research sequence in `research-state.yaml`. Phase 9 (`present`) is a post-acceptance add-on; run `/research-workflow:research present` after acceptance for talk, poster, or demo preparation.
+
 **Paper types** (chosen at `init`) decide which phases are active:
 
 | Type | Active phases |
@@ -269,6 +271,8 @@ claim 永远不超出它的证据。
 | 7 | `review` | 多视角模拟同行评审 + 投稿准备 |
 | 8 | `rebuttal` | 审稿回复、camera-ready,或转投 |
 | 9 | `present` | 报告 / 海报 / demo 准备 |
+
+> 注:0-8 是 `research-state.yaml` 跟踪的主研究流程。Phase 9（`present`）是论文接收后的附加流程;accepted 后再运行 `/research-workflow:research present` 准备报告、海报或 demo。
 
 **论文类型**(`init` 时选定)决定哪些阶段生效:
 

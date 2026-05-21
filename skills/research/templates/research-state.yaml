@@ -4,7 +4,7 @@
 # canonical in research-project.local.md; narrative memory is findings.md.
 
 schema_version: 1
-current_phase: 0          # 0..8 — advisory pointer, NOT an enforced FSM
+current_phase: 0          # 0..8 main — advisory pointer, NOT an enforced FSM; Phase 9 (`present`) is a post-acceptance addon, untracked here
 last_activity: ""         # ISO date, refreshed on every mode
 
 # Phases — advisory order; any mode callable at any time (cross-review C1).

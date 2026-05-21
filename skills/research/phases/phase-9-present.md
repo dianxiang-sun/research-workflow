@@ -1,4 +1,4 @@
-# Phase 9: Presentation Preparation (`/research present`)
+# Phase 9 (post-acceptance addon): Presentation Preparation (`/research present`)
 
 > After paper acceptance, prepare a compelling conference talk, poster, or demo that communicates your work effectively.
 

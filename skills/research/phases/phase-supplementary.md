@@ -1,4 +1,4 @@
-# Phase S: Supplementary Materials, Artifacts, Collaboration, and Ethics (`/research supplementary`)
+# Phase: Supplementary Materials, Artifacts, Collaboration, and Ethics
 
 > Covers everything surrounding the paper itself: supplementary content, reproducibility artifacts, multi-author workflows, and research ethics.
 

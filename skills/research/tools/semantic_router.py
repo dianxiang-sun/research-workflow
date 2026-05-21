@@ -178,7 +178,7 @@ DEFAULT_ROUTES = {
         ]
     },
     "present": {
-        "description": "Phase 9 演讲准备: 论文已 accepted,做 talk / poster / demo",
+        "description": "Phase 9 演讲准备 (post-acceptance addon): 论文已 accepted,做 talk / poster / demo",
         "examples": [
             "talk preparation", "演讲准备", "做 PPT", "presentation",
             "poster", "海报", "demo", "演示",

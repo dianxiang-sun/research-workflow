@@ -73,7 +73,7 @@ This SKILL.md and the `phases/` / `reference/` files frequently shorten this to 
 | `risk` | Risk Registry: view, add, update, mitigate |
 | `cost` | Cost/time estimation with iteration multipliers |
 | `novelty-watch` | Literature freshness scan for competitive threats |
-| `present` | Phase 9: Presentation preparation (talk, poster, demo) |
+| `present` | Phase 9 (post-acceptance addon): Presentation preparation (talk, poster, demo) |
 | `evolve` | Periodic self-improvement: analyze usage, promote rules, update protocols |
 | `mine-patterns` | Extract writing patterns from past papers for style consistency |
 | `advisor-prep` | Prepare advisor meeting: progress summary, open decisions, risk highlights |
@@ -152,6 +152,8 @@ Set during `init`. Determines which phases are active and how they adapt.
 | `benchmark` | 0-3, 5-8 (skip 4) | Evaluate the dataset/benchmark itself; baseline = existing benchmarks |
 | `survey` | 0-1, survey-methodology, 6-8 | Systematic review methodology replaces Phases 2-5; see `phase-survey-methodology.md` |
 | `theory` | 0-2, theory-proofs, 6-8 | Formal proofs replace Phases 3-5; see `phase-theory-proofs.md` |
+
+> Phase 9 (`present`) is a post-acceptance add-on for all paper types; it is not part of the tracked 0-8 main phase sequence.
 
 Phase subfiles contain `[SYSTEMS]` `[EMPIRICAL]` etc. markers for type-specific guidance.
 

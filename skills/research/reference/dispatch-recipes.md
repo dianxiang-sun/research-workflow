@@ -4,7 +4,7 @@
 
 ### Decision Tree: User Intent → Full Recipe
 
-### Domain-Aware Activation
+#### Domain-Aware Activation
 
 Content tagged [DOMAIN:xxx] in phase files activates based on the `domain` field
 in .claude/research-project.local.md. Rules:
@@ -48,12 +48,18 @@ User wants to WRITE a paper section:
   → IF writing Related Work: Apply citation context analysis (supporting/contrasting/mentioning)
   → IF writing Threats: Pull from Risk Registry (accepted_risk items)
 
-User wants to REVIEW/AUDIT a paper:
-  → /research-workflow:research review (or /research-workflow:research gate)
+User wants to RUN AN ADVERSARIAL GATE / phase pre-mortem:
+  → /research-workflow:research gate [N]
+  → USE: Select phase N's check dimensions from reference/gate-matrix.md
+  → USE: 3 personas: Methodology | Experiments | Domain Expert
+  → OUTPUT: PASS / CONDITIONAL / BLOCK + Risk Registry updates
+  → IF CONDITIONAL/BLOCK: Critique loop-back with delta-queries
+
+User wants to REVIEW/AUDIT a completed manuscript:
+  → /research-workflow:research review
   → USE: 7-dimension rubric (D1-D7, each scored 1-5) with 5 personas
   → IF multiple LLM APIs available: Add cross-model review (Claude writes → GPT reviews)
-  → AFTER: Critique loop-back (auto-search for delta-queries if CONDITIONAL/BLOCK)
-  → AFTER: Update progress tracker
+  → AFTER: Consolidated weakness triage + update progress tracker
 
 User wants to RUN experiments:
   → /research-workflow:research experiment
@@ -153,7 +159,7 @@ User finishes ANY /research-workflow:research mode:
 | Writing anything | **Worker-Critic** | Always for creative output |
 | Writing with citations | + **CitationAgent** post-processing | Always when \cite{} involved |
 | High-stakes artifact (design doc, eval plan, key §) | **G-V-R** (Generator-Verifier-Reviser) | Phase 2, 3, 6 key sections |
-| Phase transition | **Adversarial Gate** with 7-dim + loop-back | Always between phases |
+| Phase transition | **Adversarial Gate** with A-H matrix + loop-back | Always between phases |
 | Reviewing paper | **7-dim rubric** + **cross-model** | Phase 7, standalone review |
 | Long experiment | **Subagent health monitoring** | N ≥ 100 or parallel agents |
 | Literature search | **Semantic Scholar MCP** + **multi-perspective** | Phase 0, novelty-watch |
