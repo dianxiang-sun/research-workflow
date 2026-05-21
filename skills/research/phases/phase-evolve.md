@@ -131,7 +131,7 @@ status: proposed
 
 Run the G8 mechanical hook (see § Budget & Structure Check below):
 
-- The 8-check structural sweep
+- The 9-check structural sweep
 - The dispatcher-shape check (`SKILL.md` `wc -l` ≤ ~400, no fenced block > ~15 lines)
 - The `wc -l` trend (reported only — never a reject reason on its own)
 
@@ -173,7 +173,7 @@ kind of mechanical check the skill already does.
 1. **`wc -l` trend** — count the skill's `*.md` + `templates/research-state.yaml`;
    report the delta + cumulative vs the 3143 baseline. Reported for visibility — a
    positive delta is NOT a reject reason (§15).
-2. **Structural sweep — 8 checks, each pass/fail:**
+2. **Structural sweep — 9 checks, each pass/fail:**
    1. every router-table mode in `SKILL.md` resolves to a phase / capability;
    2. every gated `phases/` file (all but `phase-writing-memory.md`, which has no gate)
       has an `## Emitted Artifact` section and a `## Gate Criteria` whose first line is
@@ -197,6 +197,9 @@ kind of mechanical check the skill already does.
       `otherwise`, `fallback`, `inline manual`, `re-open`, or `MUST` — as a *heuristic
       missing-marker lint* (necessary but NOT sufficient — semantic fallback check is
       REQUIRED at G8 APPLY manual review of every modified `/verify-*` line; H3 anchor).
+   9. no single-letter `D<digit>` / `G<digit>` code appears in `reference/gate-matrix.md`;
+      Dataset Validity uses `DV*` and Resource Planning uses `RP*` so gate dimensions
+      do not collide with the review rubric or Global Rules (M3 anchor).
 3. **Dispatcher-shape check** — `wc -l SKILL.md` ≤ ~400, and no fenced code block in
    `SKILL.md` exceeds ~15 lines.
 4. **Tool smoke artifacts (L8 onwards)** — when proposal touches `tools/*.py`
@@ -220,6 +223,7 @@ Concrete read-only checks:
   (d) `grep -nE "['\"]/research['\"]" tools/*.py`
   Shorthand `/research <mode>` remains legal *inside* `SKILL.md` / `phases/` / `reference/` prose (see SKILL.md "canonical" anchor). Symlinked `templates/` subdirs are out of scope for (b) — BSD `grep -r` does not traverse symlinks by default; reviewer manually inspects at G8 APPLY. Fragmented Python forms (split-print, str-concat across literals, `.join` over fragments) are heuristic-only NOT caught by (c)/(d); APPLY artifact: `git diff -- skills/research/tools/*.py | grep -nE '^\+[^+].*\bresearch\b'` reviewed manually.
 - verify fallback (sweep #8) — `find . -name '*.md' ! -path './phases/phase-evolve.md' -print0 | xargs -0 grep -nE '/verify-(before-write|citations)' | grep -vE 'installed|otherwise|fallback|inline manual|re-open|MUST'` must be empty. Heuristic missing-marker check (necessary but NOT sufficient — reverse-semantic lines carrying a marker still pass). APPLY artifact: `git diff -- skills/research/ | grep -nE '^\+.*\b/verify-(before-write|citations)\b'` output, with each resulting line annotated by reviewer as `fallback in place` or `reverse-semantic risk` (H3 anchor).
+- gate-matrix prefix uniqueness (sweep #9) — `grep -nE '(^|[^[:alnum:]_])(D[0-9]|G[0-9])([^[:alnum:]_]|$)' reference/gate-matrix.md` must be empty (single-letter `D<digit>` / `G<digit>` is forbidden in `gate-matrix.md` only — Global Rule `G1-G9` lives in `SKILL.md` and review rubric `D1-D7` lives in `phase-7-review.md`, each using single-letter prefix legitimately in its own file; gate dimensions use 2-letter prefixes `DV*`/`RP*` to avoid collision) (M3 anchor).
 
 ### Budget & Structure checklist (required artifact)
 
