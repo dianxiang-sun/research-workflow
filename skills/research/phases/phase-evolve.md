@@ -87,8 +87,6 @@ Present the proposal record(s) as a numbered list — `runtime_actions` first, `
 ## Runtime Apply Manifest
 ```
 
-The bundle file `skills/research/evolution.md` is **legacy pre-H2 scaffolding** — not read or written by `/research-workflow:research` after H2. Removal of the bundle file is tracked by backlog **M4** (separate cleanup); it remains in the bundle for now as a structural reference.
-
 **5a. Runtime apply (per approved `runtime_actions` entry).** Before executing the CLI action:
 
 1. Append a one-line **undo manifest** record to the runtime evolution log (`${RESEARCH_SKILL_STATE_DIR:-$HOME/.claude/research/memory}/evolution-log.md` § Runtime Apply Manifest) containing the pre-edit state — for `boost-rule` / `retire-rule`, the rule's current `rules.jsonl` line; for `add-route-example`, the route's pre-edit example list. This is the rollback paper trail — there is no git-level revert for runtime state.

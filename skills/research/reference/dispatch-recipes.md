@@ -142,12 +142,8 @@ User mentions DEADLINE pressure or is BEHIND schedule:
   → Reference kill conditions from project config
 
 User finishes ANY /research-workflow:research mode:
-  → POST-INVOCATION PROTOCOL (mandatory):
-    1. Update progress tracker (check off items)
-    2. Log outcome (research-reflect log-outcome)
-    3. If failure: Log reflection + extract rule
-    4. Ask: "这次有什么没覆盖到的？"
-    5. If hook missed: Learn new trigger phrase
+  → POST-INVOCATION PROTOCOL → See learning-mechanisms.md § Post-Invocation Protocol
+    (single source of truth; "这次有什么没覆盖到的?" is reserved for failure/partial, NOT mandatory after success)
 ```
 
 ### Quick Pattern Selection Guide
