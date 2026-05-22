@@ -207,6 +207,22 @@ citations, pre-mortem reviews. You and Claude do the research; the skill keeps i
 plugin is installed and enabled. Re-enable the plugin or restart Claude Code. The skill
 still dispatches correctly without the tools — only the learning features pause.
 
+### Release history
+
+A plain-language summary of what each 0.1.x release changed and why it matters to you. Items marked **[important]** are the most user-visible data / behavior bugs; the rest are mostly docs / internal cleanup or one-time install / onboarding fixes called out inline.
+
+- **0.1.8** — **[important]** Closed a remaining gap where a brand-new rule could be marked "hard" (mandatory) without ever being validated; `--confidence` now rejects out-of-range / `nan` / `inf` values. Also merged the three-tier-memory doc inline.
+- **0.1.7** — `query-*` commands gained a `--json` flag for machine-readable output (so `evolve` can consume it). Mostly invisible in normal use.
+- **0.1.6** — Docs cleanup: separated "run a gate" from "review a manuscript", and clarified that Phase 9 (`present`) is a post-acceptance add-on, not part of the tracked 0–8 pipeline.
+- **0.1.5** — Renamed gate-matrix row codes to `DV*` / `RP*` so they stop colliding with the review-rubric and Global-Rule codes (you may see slightly different labels).
+- **0.1.4** — Removed a stale bundled file and a duplicated protocol; successful runs no longer ask the "what did we miss?" reflection question.
+- **0.1.3** — **[important]** Concurrency fix: parallel agents writing learned rules at the same time no longer lose each other's updates (file lock). Single-session use is unaffected.
+- **0.1.2** — **[important]** Rule "hardening" now requires validation across enough runs and multiple phases before a rule becomes a mandatory "hard" rule; retired rules can no longer be revived by `boost-rule`.
+- **0.1.1** — Removed dead-code fallback for a pre-release project format.
+- **0.1.0** — First public release: bilingual manual + the full toolchain. A burst of post-release fixes (same version) removed assumptions that only held on the author's machine: tool command names, the `/research-workflow:research` dispatch path, reliable `init`, read-only-safe `evolve`, and route persistence.
+
+**Upgrading:** use `/research-workflow:research <mode>` (bare `/research` is no longer the recommended form). If you logged rules before 0.1.8, ask Claude to list any over-confident "hard" rules first, then downgrade them — only retire ones that are clearly wrong.
+
 ### License
 
 MIT — see [LICENSE](LICENSE).
@@ -397,6 +413,22 @@ pre-mortem 评审。研究是你和 Claude 做的;skill 负责让它诚实。
 **`research-reflect: command not found`?** `bin/` wrapper 只有在 plugin 已安装并启用时才
 在 PATH 上。重新启用 plugin 或重启 Claude Code。没有这些工具,skill 仍能正确派发 —— 只是
 学习功能暂停。
+
+### 发布历史
+
+每个 0.1.x 版本改了什么、对你意味着什么的大白话小结。标 **【重要】** 的是最值得留意的数据 / 行为类 bug;其余多为文档 / 内部整理,或条目里单独说明的一次性安装 / 上手修复。
+
+- **0.1.8** — **【重要】** 堵上最后一个漏洞:新建的规则原先可能没经任何验证就被标成"铁律"(强制执行);`--confidence` 现在会拒绝超范围 / `nan` / `inf`。另把三层记忆的说明合并进正文。
+- **0.1.7** — `query-*` 命令新增 `--json` 选项输出机器可读格式(供 `evolve` 消费)。日常使用基本无感。
+- **0.1.6** — 文档整理:把"跑 Gate"和"审稿"分开讲清,并说明 Phase 9(`present`)是录用后的附加项,不属被追踪的 0–8 主流程。
+- **0.1.5** — gate-matrix 行号改名 `DV*` / `RP*`,不再与审稿 rubric、全局规则编号撞车(你可能看到标签略有变化)。
+- **0.1.4** — 删掉一个过时的捆绑文件和重复协议;成功完成的运行不再追问"这次有什么没覆盖到"。
+- **0.1.3** — **【重要】** 并发修复:多个 agent 同时写学习规则时不再互相覆盖丢失(加了文件锁)。单会话使用不受影响。
+- **0.1.2** — **【重要】** 规则"强化"现在要经过足够次数、跨多个阶段验证,才会升级成强制的"铁律";退役规则不能再被 `boost-rule` 复活。
+- **0.1.1** — 删掉一段针对发布前项目格式的死代码兜底。
+- **0.1.0** — 首次公开发布:双语手册 + 完整工具链。发布后一批同版本号的急修,移除了只在作者本机成立的假设:工具命令名、`/research-workflow:research` 派发路径、可靠的 `init`、只读环境也能跑的 `evolve`、以及路由持久化。
+
+**升级提示:** 用 `/research-workflow:research <mode>`(裸 `/research` 已不是推荐写法)。若你在 0.1.8 前记录过规则,先让 Claude 列出过度自信的"铁律"规则审查,再降级 —— 只退役明显错误的。
 
 ### 许可证
 
